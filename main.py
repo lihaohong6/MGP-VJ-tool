@@ -2,15 +2,14 @@
 
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-import json
 import re
-from datetime import datetime
+from pathlib import Path
 
-import requests
-from bs4 import BeautifulSoup
-
-from utils.helpers import auto_lj
-from utils.two_way_dict import TwoWayDict
+from data import chinese_at_wiki_id
+from models.video import Site, video_from_site, Video, view_count_from_site
+from utils.at_wiki import get_lyrics
+from utils.helpers import auto_lj, download_file, is_empty, prompt_choices, prompt_response, datetime_to_ymd, \
+    only_canonical_videos, get_video
 
 name_japanese = ""
 name_chinese = ""
@@ -37,139 +36,17 @@ def init_names():
 init_names()
 
 
-def prompt_choices(prompt: str, choices: list[str]):
-    print(prompt)
-    for index, choice in enumerate(choices):
-        print(f"{index + 1}: {choice}")
-    while True:
-        response = input()
-        try:
-            r = int(response)
-            if 1 <= r <= len(choices):
-                return r
-            else:
-                print(f"{r} is not in range.")
-        except Exception as e:
-            print(e)
-            continue
-
-
-def prompt_response(prompt: str) -> str:
-    print(prompt)
-    return input()
-
-
-def str_to_date(date: str) -> datetime:
-    date = date.split("-")
-    year = int(date[0])
-    month = int(date[1])
-    day = int(date[2])
-    return datetime(year=year, month=month, day=day)
-
-
-def get_nc_info(vid: str) -> (int, datetime):
-    url = f"https://www.nicovideo.jp/watch/{vid}"
-    result = requests.get(url).text
-    soup = BeautifulSoup(result, "html.parser")
-    for s in soup.find_all('script'):
-        t: str = s.get_text()
-        index_start = t.find("uploadDate")
-        if index_start == -1:
-            continue
-        index_start += len("uploadDate") + 3
-        date = t[index_start:index_start + 10]
-        return -1, str_to_date(date)
-    return -1, datetime.fromtimestamp(0)
-
-
-def get_bb_info(vid: str) -> (int, datetime):
-    url = f"http://api.bilibili.com/x/web-interface/view?bvid={vid}"
-    response = json.loads(requests.get(url).text)
-    epoch_time = int(response['data']['pubdate'])
-    return -1, datetime.fromtimestamp(epoch_time)
-
-
-def get_yt_info(vid: str) -> (int, datetime):
-    url = 'https://www.youtube.com/watch?v=' + vid
-    text = requests.get(url).text
-    soup = BeautifulSoup(text, "html.parser")
-    views = int(soup.select_one('meta[itemprop="interactionCount"][content]')['content'])
-    date = str_to_date(soup.select_one('meta[itemprop="datePublished"][content]')['content'])
-    return views, date
-
-
-def parse_at_wiki_header(header: str) -> list[tuple[str, str]]:
-    lines = header.split("\n")
-    result: list[tuple[str, str]] = []
-    for line in lines:
-        index = line.find("：")
-        if index != -1:
-            result.append((line[:index], line[index + 1:]))
-    return result
-
-
-def parse_at_wiki_body(body: str) -> str:
-    lines = body.split("\n")
-    result = []
-    index = 0
-    while index < len(lines):
-        if not lines[index].isspace():
-            break
-        index += 1
-    state = 0
-    while index < len(lines):
-        if len(lines[index]) == 0 or lines[index].isspace():
-            state += 1
-        else:
-            if state > 2:
-                result.append("")
-            result.append(lines[index])
-            state = 0
-        index += 1
-    return "\n".join(result)
-
-
-def get_at_wiki_body(name: str, url: str) -> (list[tuple[str, str]], str):
-    soup = BeautifulSoup(requests.get(url).text, "html.parser")
-    # TODO: more robust searching mechanism
-    match = soup.find("div", {"id": "wikibody"}).find("ul").find_all("li")[0]
-    url = "https:" + match.find("a").get("href")
-    soup = BeautifulSoup(requests.get(url).text, "html.parser")
-    return parse_body(name, soup.find("div", {"id": "wikibody"}).text)
-
-
-def parse_body(name: str, text: str) -> (list[tuple[str, str]], str):
-    index_comment = text.find("\nコメント\n")
-    if index_comment != -1:
-        text = text[:index_comment]
-    colon_index = text.rfind("：")
-    divider = text.find("\n", colon_index)
-    header = text[:divider]
-    body = text[divider:]
-    keywords = ["ブロマガより転載", "\n歌詞\n", "\n" + name + "\n"]
-    index = max([body.find(k) for k in keywords])
-    if index == -1:
-        index = 0
-    index = body.find("\n", index) + 1
-    body = body[index:]
-    return parse_at_wiki_header(header), parse_at_wiki_body(body)
-
-
-def get_lyrics(name: str) -> (list[tuple[str, str]], str, str):
-    url_jap = f"https://w.atwiki.jp/hmiku/search?andor=and&keyword={name}"
-    url_chs = f"https://w.atwiki.jp/vocaloidchly/search?andor=and&keyword={name}"
-    jap = get_at_wiki_body(name, url_jap)
-    chs = get_at_wiki_body(name, url_chs)
-    return chs[0], jap[1], chs[1]
-
-
 def get_vocaloid_names() -> list[str]:
     names = []
     for c in creators:
-        if c[0] == '歌':
+        if c[0] == '歌' or c[0] == '唄':
             names.extend(c[1].split("・"))
     names = set(names)
     return list(names)
+
+
+def get_vocaloid_names_chs() -> list[str]:
+    return [name_to_chinese(name) for name in get_vocaloid_names()]
 
 
 def name_to_chinese(name: str) -> str:
@@ -196,32 +73,149 @@ def get_producers() -> list[str]:
     return list(set(result))
 
 
-def create_header() -> str:
-    return f"""{{{{VOCALOID_Songbox
+def videos_to_str(videos: list[Video]) -> list[str]:
+    videos = only_canonical_videos(videos)
+    result = []
+    for i in range(len(videos)):
+        if i == 0 or videos[i].uploaded != videos[i - 1].uploaded:
+            date = datetime_to_ymd(videos[i].uploaded)
+        else:
+            date = "同日"
+
+        s = f"于{date}投稿至{videos[i].site.value}，再生数为{view_count_from_site(videos[i])}"
+        result.append(s)
+    return result
+
+
+def create_header(videos: list[Video]) -> str:
+    top = ""
+    nico = get_video(videos, Site.NICO_NICO)
+    if nico and nico.views >= 100000:
+        top = "{{VOCALOID殿堂曲题头}}"
+    sites = {
+        Site.NICO_NICO: "nnd_id",
+        Site.BILIBILI: "bb_id",
+        Site.YOUTUBE: "yt_id"
+    }
+    video_id = "".join([f"|{sites.get(s)} = {get_video(videos, s).identifier}\n"
+                        for s in sites.keys() if get_video(videos, s) and get_video(videos, s).canonical])
+    return f"""{top}\n{{{{VOCALOID_Songbox
 |image    = {name_chinese}封面.jpg
 |图片信息 = 
 |颜色     = 
 |演唱     = {"、".join([f"[[{name_to_chinese(name)}]]" for name in get_vocaloid_names()])}
 |歌曲名称 = {"<br/>".join(get_song_names())}
-|P主 = {"<br/>".join(['[[' + p + ']]' for p in get_producers()])}
-|nnd_id   = {nc_id}
-|yt_id    = {yt_id}
-|bb_id    = {bv}
-|其他资料 = 于2015年5月8日投稿至niconico，再生数为{{NiconicoCount|id=sm26209559}}<br/>于2017年10月5日投稿人声本家至YouTube，再生数为114,000+
+|P主 = {"<br/>".join([auto_lj('[[' + p + ']]') for p in get_producers()])}
+{video_id}|其他资料 = {"<br/>".join(videos_to_str(videos))}
 }}}}
 """
+
+
+def list_to_str(l: list[str]) -> str:
+    if len(l) == 0:
+        return ""
+    if len(l) == 1:
+        return l[0]
+    front = "、".join(l[:len(l) - 1])
+    return front + "和" + l[-1]
+
+
+def create_intro(videos: list[Video]):
+    start = "《'''" + auto_lj(name_japanese) + "'''》"
+    return f"{start}" \
+           f"{'' if name_chinese == name_japanese or name_chinese.isspace() else f'（{name_chinese}）'}" \
+           f"是由{auto_lj('[[' + get_producers()[0] + ']]')}于{datetime_to_ymd(videos[0].uploaded)}投稿至[[{videos[0].site.value}]]的日文原创歌曲，" \
+           f"由{list_to_str([f'[[{name_to_chinese(n)}]]' for n in get_vocaloid_names()])}演唱。"
+
+
+def create_song(videos: list[Video]):
+    video_player = ""
+    for v in videos:
+        if v.site == Site.BILIBILI:
+            video_player = f"{{{{" \
+                           f"bilibiliVideo|id={v.identifier}" \
+                           f"}}}}"
+    groups = [(job if job != "歌" and job !="唄" else "演唱", name) for job, name in creators]
+    groups = [f"|group{index + 1} = {g[0]}\n"
+              f"|list{index + 1} = {auto_lj(g[1])}\n"
+              for index, g in enumerate(groups)]
+    return f"== 歌曲 ==\n" \
+           f"{{{{VOCALOID Songbox Introduction\n" \
+           f"|lbgcolor=#000\n|ltcolor=white\n" \
+           f"{''.join(groups)}" \
+           f"}}}}\n\n{video_player}"
+
+
+def create_lyrics(lyrics_jap: str, lyrics_chs: str, translator: str):
+    chs_exist = True if lyrics_chs else False
+    if chs_exist:
+        translation_notice = f"*翻译：{translator if translator else 'ERROR!'}" \
+                             f"<ref>翻译转载自[https://w.atwiki.jp/vocaloidchly/pages/{chinese_at_wiki_id}.html " \
+                             f"VOCALOID中文歌词wiki]</ref>"
+    else:
+        translation_notice = "{{求翻译}}"
+
+    return f"== 歌词 ==\n" \
+           f"{translation_notice}\n" \
+           f"{{{{LyricsKai\n" \
+           f"|original={lyrics_jap}\n" \
+           f"{f'|translated={lyrics_chs}' if lyrics_chs else ''}\n" \
+           f"}}}}"
+
+
+def create_end():
+    return """== 注释与外部链接 ==
+<references/>
+[[分类:日本音乐作品]]
+[[分类:使用VOCALOID的歌曲]]\n""" + \
+           "\n".join([f'[[分类:{name}歌曲]]'
+                      for name in get_vocaloid_names_chs()])
 
 
 def main():
     global name_japanese, name_chinese, name_other, creators, bv, nc_id, yt_id
     name_japanese = prompt_response("Japanese name?")
     name_chinese = prompt_response("Chinese name?")
+    if is_empty(name_chinese):
+        name_chinese = name_japanese
     name_other = prompt_response("Other names?")
     creators, lyrics_jap, lyrics_chs = get_lyrics(name_japanese)
+    translator = None
+    for job, name in creators:
+        if job == "翻譯":
+            creators.remove((job, name))
+            translator = name
     bv = prompt_response("Bilibili link?")
+    if bv.isspace() or len(bv) == 0:
+        bv = None
+    bv_canonical = True
+    if bv:
+        bv_canonical = prompt_choices("BV canonical?", ["Yes", "No"])
+        bv_canonical = bv_canonical == 1
     nc_id = prompt_response("NicoNico link?")
     yt_id = prompt_response("YouTube link?")
-    print(create_header())
+    videos = [(Site.BILIBILI, bv, bv_canonical), (Site.NICO_NICO, nc_id), (Site.YOUTUBE, yt_id)]
+    videos = [video_from_site(*video) for video in videos if len(video[1]) > 0 and not video[1].isspace()]
+    videos = sorted(videos, key=lambda v: v.uploaded)
+    header = create_header(videos)
+    intro = create_intro(videos)
+    song = create_song(videos)
+    lyrics = create_lyrics(lyrics_jap, lyrics_chs, translator)
+    end = create_end()
+    Path("./output").mkdir(exist_ok=True)
+    f = open(f"./output/{name_chinese}.wikitext", "w")
+    f.write("\n".join([header, intro, song, lyrics, end]))
+    weight = {
+        Site.YOUTUBE: 0,
+        Site.BILIBILI: 1,
+        Site.NICO_NICO: 2
+    }
+    videos.sort(key=lambda vid: weight[vid.site])
+    for v in videos:
+        if v.thumb_url:
+            print("Downloading cover from " + v.thumb_url)
+            download_file(v.thumb_url, f"./output/{name_chinese}封面.jpg")
+            break
 
 
 # Press the green button in the gutter to run the script.
