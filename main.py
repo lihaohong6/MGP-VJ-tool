@@ -2,9 +2,11 @@
 
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+import logging
 import re
 from pathlib import Path
 
+import data
 from data import chinese_at_wiki_id
 from models.video import Site, video_from_site, Video, view_count_from_site
 from utils.at_wiki import get_lyrics
@@ -150,7 +152,7 @@ def create_lyrics(lyrics_jap: str, lyrics_chs: str, translator: str):
     chs_exist = True if lyrics_chs else False
     if chs_exist:
         translation_notice = f"*翻译：{translator if translator else 'ERROR!'}" \
-                             f"<ref>翻译转载自[https://w.atwiki.jp/vocaloidchly/pages/{chinese_at_wiki_id}.html " \
+                             f"<ref>翻译转载自[https://w.atwiki.jp/vocaloidchly/pages/{data.chinese_at_wiki_id}.html " \
                              f"VOCALOID中文歌词wiki]</ref>"
     else:
         translation_notice = "{{求翻译}}"
@@ -164,15 +166,19 @@ def create_lyrics(lyrics_jap: str, lyrics_chs: str, translator: str):
 
 
 def create_end():
+    transform = {
+        "GUMI": "Megpoid"
+    }
     return """== 注释与外部链接 ==
 <references/>
 [[分类:日本音乐作品]]
 [[分类:使用VOCALOID的歌曲]]\n""" + \
-           "\n".join([f'[[分类:{name}歌曲]]'
+           "\n".join([f'[[分类:{transform[name] if name in transform.keys() else name}歌曲]]'
                       for name in get_vocaloid_names_chs()])
 
 
 def main():
+    logging.basicConfig(filename="logs.txt", level=logging.INFO)
     global name_japanese, name_chinese, name_other, creators, bv, nc_id, yt_id
     name_japanese = prompt_response("Japanese name?")
     name_chinese = prompt_response("Chinese name?")
@@ -182,7 +188,7 @@ def main():
     creators, lyrics_jap, lyrics_chs = get_lyrics(name_japanese)
     translator = None
     for job, name in creators:
-        if job == "翻譯":
+        if job == "翻譯" or job == "翻译":
             creators.remove((job, name))
             translator = name
     bv = prompt_response("Bilibili link?")
@@ -195,7 +201,7 @@ def main():
     nc_id = prompt_response("NicoNico link?")
     yt_id = prompt_response("YouTube link?")
     videos = [(Site.BILIBILI, bv, bv_canonical), (Site.NICO_NICO, nc_id), (Site.YOUTUBE, yt_id)]
-    videos = [video_from_site(*video) for video in videos if len(video[1]) > 0 and not video[1].isspace()]
+    videos = [video_from_site(*video) for video in videos if video[1] and len(video[1]) > 0 and not video[1].isspace()]
     videos = sorted(videos, key=lambda v: v.uploaded)
     header = create_header(videos)
     intro = create_intro(videos)

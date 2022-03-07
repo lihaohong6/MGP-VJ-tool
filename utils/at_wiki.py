@@ -1,3 +1,5 @@
+import logging
+
 import requests
 from bs4 import BeautifulSoup
 import data
@@ -42,7 +44,9 @@ def get_at_wiki_body(name: str, url: str) -> (list[tuple[str, str]], str):
         print("Not found on atwiki")
         return [], None
     url = "https:" + match.find("a").get("href")
+    logging.info("At wiki url " + url)
     data.chinese_at_wiki_id = url[url.rfind("pageid=") + 7:]
+    logging.info("At wiki id " + data.chinese_at_wiki_id)
     soup = BeautifulSoup(requests.get(url).text, "html.parser")
     return parse_body(name, soup.find("div", {"id": "wikibody"}).text)
 
@@ -70,6 +74,9 @@ def get_lyrics(name: str) -> (list[tuple[str, str]], str, str):
     jap = get_at_wiki_body(name, url_jap)
     chs = get_at_wiki_body(name, url_chs)
     for job, name in chs[0]:
-        if job == "翻譯":
+        if job == "翻譯" or job == "翻译":
             jap[0].append((job, name))
+    for index in range(len(jap[0])):
+        name, job = jap[0][index]
+        jap[0][index] = (name.strip(), job.strip())
     return jap[0], jap[1], chs[1]
