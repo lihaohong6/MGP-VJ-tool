@@ -24,7 +24,8 @@ def is_lyrics(line: str) -> bool:
                 (data.name_japanese in line and ("オリジナル" in line or
                                                  re.match("[【『]+", line) or
                                                  "歌詞" in line)) or
-                ("転載" in line or "转载" in line) and re.match("[(（]+", line)
+                (("転載" in line or "转载" in line or "取り" in line)
+                 and re.match("[(（]+", line))
                 )
 
 

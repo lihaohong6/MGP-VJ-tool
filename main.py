@@ -13,6 +13,7 @@ from models.video import Site, video_from_site, Video, view_count_from_site
 from utils.at_wiki import get_lyrics
 from utils.helpers import auto_lj, download_file, is_empty, prompt_choices, prompt_response, datetime_to_ymd, \
     only_canonical_videos, get_video, list_to_str, assert_str_exists, split, prompt_multiline
+from utils.name_converter import name_to_cat
 
 
 def get_song_names(name_other: str) -> list[str]:
@@ -103,14 +104,11 @@ def create_lyrics(lyrics_jap: str, lyrics_chs: str, translator: str):
 
 
 def create_end(creators: CreatorList):
-    transform = {
-        "GUMI": "Megpoid"
-    }
     return """== 注释与外部链接 ==
 <references/>
 [[分类:日本音乐作品]]
 [[分类:使用VOCALOID的歌曲]]\n""" + \
-           "\n".join([f'[[分类:{transform[name] if name in transform.keys() else name}歌曲]]'
+           "\n".join([f'[[分类:{name_to_cat(name)}歌曲]]'
                       for name in get_vocaloid_names_chs(creators)])
 
 
