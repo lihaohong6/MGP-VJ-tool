@@ -85,15 +85,23 @@ info_func = {
 
 
 def view_count_from_site(video: Video) -> str:
-    match video.site:
-        case Site.NICO_NICO:
-            return f"{{{{NiconicoCount|id={video.identifier}}}}}"
-        case Site.YOUTUBE:
-            return f"{{{{YoutubeCount|id={video.identifier}|fallback={video.views}+}}}}"
-        case Site.BILIBILI:
-            return f"{{{{BilibiliCount|id={video.identifier}}}}}"
-        case _:
-            return "ERROR"
+    # requires Python 3.10; too many compatibility issues
+    # match video.site:
+    #     case Site.NICO_NICO:
+    #         return f"{{{{NiconicoCount|id={video.identifier}}}}}"
+    #     case Site.YOUTUBE:
+    #         return f"{{{{YoutubeCount|id={video.identifier}|fallback={video.views}+}}}}"
+    #     case Site.BILIBILI:
+    #         return f"{{{{BilibiliCount|id={video.identifier}}}}}"
+    #     case _:
+    #         return "ERROR"
+    if video.site == Site.NICO_NICO:
+        return f"{{{{NiconicoCount|id={video.identifier}}}}}"
+    if video.site == Site.YOUTUBE:
+        return f"{{{{YoutubeCount|id={video.identifier}|fallback={video.views}+}}}}"
+    if video.site == Site.BILIBILI:
+        return f"{{{{BilibiliCount|id={video.identifier}}}}}"
+    return "ERROR"
 
 
 def video_from_site(site: Site, identifier: str, canonical: bool = True) -> Video:
