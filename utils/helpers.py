@@ -13,7 +13,7 @@ def auto_lj(s: str) -> str:
 
 
 def is_empty(s: str) -> bool:
-    return s.isspace() or len(s) == 0
+    return not s or s.isspace() or len(s) == 0
 
 
 def download_file(url, target):
@@ -24,8 +24,8 @@ def download_file(url, target):
                 f.write(chunk)
 
 
-def split(s: str) -> list[str]:
-    return re.split("[・/ ]+", s)
+def split(s: str, regex: str = "[・/，, ]+") -> list[str]:
+    return re.split(regex, s)
 
 
 def prompt_choices(prompt: str, choices: list[str]):
@@ -45,9 +45,22 @@ def prompt_choices(prompt: str, choices: list[str]):
             continue
 
 
-def prompt_response(prompt: str) -> str:
+def prompt_response(prompt: str, auto_strip: bool = True) -> str:
     print(prompt)
-    return input()
+    s = input()
+    if auto_strip:
+        return s.strip()
+    return s
+
+
+def prompt_multiline(prompt: str) -> list[str]:
+    print(prompt + " End with empty line.")
+    res = []
+    while True:
+        s = input()
+        if is_empty(s):
+            return res
+        res.append(s)
 
 
 def datetime_to_ymd(u: datetime) -> str:
@@ -63,3 +76,16 @@ def get_video(videos: list[Video], site: Site):
         if v.site == site:
             return v
     return None
+
+
+def list_to_str(l: list[str]) -> str:
+    if len(l) == 0:
+        return ""
+    if len(l) == 1:
+        return l[0]
+    front = "、".join(l[:len(l) - 1])
+    return front + "和" + l[-1]
+
+
+def assert_str_exists(s: str) -> str:
+    return s if not is_empty(s) else "ERROR!"
