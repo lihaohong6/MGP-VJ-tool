@@ -60,7 +60,7 @@ def get_at_wiki_body(name: str, url: str, lang: str) -> (list[tuple[str, str]], 
     soup = BeautifulSoup(requests.get(url).text, "html.parser")
     # TODO: more robust searching mechanism
     match = soup.find("div", {"id": "wikibody"}).find("ul").find_all("li", limit=1)
-    if len(match) == 0 or match[0].find("a").text != name:
+    if len(match) == 0 or not match[0].find("a") or match[0].find("a").text != name:
         url = prompt_response(lang + " lyrics not found on atwiki. Supply manually?")
         if is_empty(url):
             return [], None

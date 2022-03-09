@@ -17,7 +17,7 @@ from utils.name_converter import name_to_cat
 
 
 def get_song_names(name_other: str) -> list[str]:
-    names = [auto_lj(name_japanese), name_chinese, *re.split("[，,]+", name_other)]
+    names = [auto_lj(data.name_japanese), data.name_chinese, *re.split("[，,]+", name_other)]
     names = [name for name in names if not is_empty(name)]
     return list(set(names))
 
@@ -48,7 +48,7 @@ def create_header(videos: list[Video], creators: CreatorList, name_other: str) -
     video_id = "".join([f"|{sites.get(s)} = {get_video(videos, s).identifier}\n"
                         for s in sites.keys() if get_video(videos, s) and get_video(videos, s).canonical])
     return f"""{top}\n{{{{VOCALOID_Songbox
-|image    = {name_chinese}封面.jpg
+|image    = {data.name_chinese}封面.jpg
 |图片信息 = 
 |颜色     = 
 |演唱     = {"、".join(get_vocaloid_names_chs(creators, ("[[", "]]")))}
@@ -60,9 +60,11 @@ def create_header(videos: list[Video], creators: CreatorList, name_other: str) -
 
 
 def create_intro(videos: list[Video], creators: CreatorList):
-    start = "《'''" + auto_lj(name_japanese) + "'''》"
+    nc = data.name_chinese
+    nj = data.name_japanese
+    start = "《'''" + auto_lj(nj) + "'''》"
     return f"{start}" \
-           f"{'' if name_chinese == name_japanese else f'（{name_chinese}）'}" \
+           f"{'' if nc == nj else f'（{nc}）'}" \
            f"是由{auto_lj('[[' + (get_producers(creators)[0] if len(get_producers(creators)) > 0 else 'ERROR') + ']]')}" \
            f"于{datetime_to_ymd(videos[0].uploaded)}投稿至[[{videos[0].site.value}]]的日文原创歌曲，" \
            f"由{assert_str_exists(list_to_str(get_vocaloid_names_chs(creators, ('[[', ']]'))))}演唱。"
