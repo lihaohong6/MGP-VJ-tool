@@ -12,7 +12,8 @@ import data
 from models.song import Song
 from models.creators import Person, person_list_to_str, Staff, role_priority
 from models.video import Site, video_from_site, Video, view_count_from_site
-from utils.helpers import download_file, prompt_choices, prompt_response, only_canonical_videos, get_video
+from utils.helpers import download_file, prompt_choices, prompt_response, only_canonical_videos, get_video, \
+    prompt_multiline
 from utils.name_converter import name_to_cat, name_to_chinese
 from utils.string import auto_lj, is_empty, datetime_to_ymd, assert_str_exists, join_string
 from utils.vocadb import get_song_by_name
@@ -138,12 +139,16 @@ def create_lyrics(song: Song):
     else:
         translation_notice = "{{求翻译}}"
 
-    return f"== 歌词 ==\n" \
-           f"{translation_notice}\n" \
-           f"{{{{LyricsKai\n" \
-           f"|original={assert_str_exists(song.lyrics_jap)}\n" \
-           f"{f'|translated={song.lyrics_chs.lyrics}' if song.lyrics_chs.lyrics else ''}\n" \
-           f"}}}}"
+    return f"""== 歌词 ==
+{translation_notice}
+{{{{LyricsKai
+|lstyle=color:;
+|rstyle=color:;
+|containerstyle=background:;
+|original={assert_str_exists(song.lyrics_jap)}
+{f'|translated={song.lyrics_chs.lyrics}' if song.lyrics_chs.lyrics else ''}
+}}}}
+"""
 
 
 def create_end(song: Song):
@@ -197,6 +202,24 @@ def download_thumbnail(videos: list[Video], filename: str):
             break
 
 
+def create_uploader_note(song: Song) -> str:
+    response = prompt_choices("Uploader note?", choices=["Yes", "No"])
+    if response == 2:
+        return ""
+    japanese = prompt_multiline("Input Japanese version. End input with a single line of 'END'.",
+                                terminator=is_empty)
+    japanese = "<br/>".join(japanese)
+    chinese = prompt_multiline("Input Chinese version. End input with a single line of 'END'",
+                               terminator=is_empty)
+    chinese = "<br/>".join(chinese)
+    return f"""{{{{Cquote|{{{{lj|{japanese}}}}}
+----
+{chinese}
+|{auto_lj(song.creators.producers[0].name)}投稿文
+}}}}
+"""
+
+
 def main():
     setup_logger()
     data.name_japanese = prompt_response("Japanese name?")
@@ -215,11 +238,12 @@ def main():
             song.lyrics_chs.translator = name
             break
     header = create_header(song)
+    uploader_note = create_uploader_note(song)
     intro = create_intro(song)
     song_body = create_song(song)
     lyrics = create_lyrics(song)
     end = create_end(song)
-    write_to_file("\n".join([header, intro, song_body, lyrics, end]),
+    write_to_file("\n".join([header, uploader_note, intro, song_body, lyrics, end]),
                   f"{song.name_chs}.wikitext")
     download_thumbnail(song.videos, f"{song.name_chs}封面.jpeg")
     print("Program ended. Go to output folder for result.")

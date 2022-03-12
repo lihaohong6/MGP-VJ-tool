@@ -23,3 +23,4 @@ class Song:
     lyrics_chs: Lyrics
     videos: list[Video]
     albums: list[str]
+    uploader_note: str = None
