@@ -1,10 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
+@dataclass
 class Person:
-    def __init__(self, name: str, name_eng=None):
-        self.name: str = name
-        self.name_eng: list[str] = name_eng
+    name: str
+    name_eng: list[str] = field(default_factory=list)
 
 
 def person_list_to_str(lst: list[Person]) -> list[str]:

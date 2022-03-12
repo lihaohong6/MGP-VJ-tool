@@ -140,12 +140,12 @@ def search_with_url(url: str, name: str) -> list:
 
 
 def search_narrow(name: str) -> list:
-    url = VOCADB_NARROW.format(urllib.parse.quote(name, "&/=?%"))
+    url = VOCADB_NARROW.format(urllib.parse.quote(name))
     return search_with_url("https://" + url, name)
 
 
 def search_broad(name: str) -> list:
-    url = VOCADB_BROAD.format(urllib.parse.quote(name, "&/=?%"))
+    url = VOCADB_BROAD.format(urllib.parse.quote(name))
     return search_with_url("https://" + url, name)
 
 

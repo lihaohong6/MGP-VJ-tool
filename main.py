@@ -14,6 +14,7 @@ from models.creators import Person, person_list_to_str, Staff, role_priority
 from models.video import Site, video_from_site, Video, view_count_from_site
 from utils.helpers import download_file, prompt_choices, prompt_response, only_canonical_videos, get_video, \
     prompt_multiline
+from utils.mgp import get_producer_templates
 from utils.name_converter import name_to_cat, name_to_chinese
 from utils.string import auto_lj, is_empty, datetime_to_ymd, assert_str_exists, join_string
 from utils.vocadb import get_song_by_name
@@ -152,7 +153,9 @@ def create_lyrics(song: Song):
 
 
 def create_end(song: Song):
-    return """== 注释与外部链接 ==
+    lst = get_producer_templates(song.creators.producers)
+    producer_string = join_string(lst, outer_wrapper=("{{Template:", "}}\n"))
+    return producer_string + """== 注释与外部链接 ==
 <references/>
 [[分类:日本音乐作品]]
 [[分类:使用VOCALOID的歌曲]]\n""" + \
