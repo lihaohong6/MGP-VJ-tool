@@ -8,12 +8,13 @@ from models.video import Video, Site
 from utils.string import is_empty
 
 
-def download_file(url, target):
+def download_file(url, target) -> bool:
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
         with open(target, 'wb') as f:
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
+    return True
 
 
 def prompt_response(prompt: str, auto_strip: bool = True,

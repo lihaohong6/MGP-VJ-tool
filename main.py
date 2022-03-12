@@ -174,6 +174,27 @@ def setup_logger():
     logger.addHandler(handler)
 
 
+def write_to_file(output: str, filename: str):
+    Path("./output").mkdir(exist_ok=True)
+    f = open(f"./output/{filename}", "w", encoding="UTF-8")
+    f.write(output)
+    f.close()
+
+
+def download_thumbnail(videos: list[Video], filename: str):
+    weight = {
+        Site.YOUTUBE: 0,
+        Site.BILIBILI: 1,
+        Site.NICO_NICO: 2
+    }
+    videos = sorted(videos, key=lambda vid: weight[vid.site])
+    for v in videos:
+        if v.thumb_url:
+            print("Downloading cover from " + v.site.value + " with url " + v.thumb_url)
+            download_file(v.thumb_url, f"./output/{filename}")
+            break
+
+
 def main():
     setup_logger()
     data.name_japanese = prompt_response("Japanese name?")
@@ -196,21 +217,9 @@ def main():
     song_body = create_song(song)
     lyrics = create_lyrics(song)
     end = create_end(song)
-    Path("./output").mkdir(exist_ok=True)
-    f = open(f"./output/{data.name_chinese}.wikitext", "w", encoding="UTF-8")
-    f.write("\n".join([header, intro, song_body, lyrics, end]))
-    weight = {
-        Site.YOUTUBE: 0,
-        Site.BILIBILI: 1,
-        Site.NICO_NICO: 2
-    }
-    videos = song.videos
-    videos = sorted(videos, key=lambda vid: weight[vid.site])
-    for v in videos:
-        if v.thumb_url:
-            print("Downloading cover from " + v.site.value + " with url " + v.thumb_url)
-            download_file(v.thumb_url, f"./output/{song.name_chs}封面.jpg")
-            break
+    write_to_file("\n".join([header, intro, song_body, lyrics, end]),
+                  f"{song.name_chs}.wikitext")
+    download_thumbnail(song.videos, f"{song.name_chs}封面.jpeg")
     print("Program ended. Go to output folder for result.")
 
 
