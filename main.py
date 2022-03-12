@@ -2,6 +2,7 @@
 
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+import asyncio
 import logging
 import sys
 import traceback
@@ -153,15 +154,15 @@ def create_lyrics(song: Song):
 
 
 def create_end(song: Song):
-    lst = get_producer_templates(song.creators.producers)
+    lst = asyncio.run(get_producer_templates(song.creators.producers))
     producer_string = join_string(lst, outer_wrapper=("{{Template:", "}}\n"))
-    return producer_string + """== 注释与外部链接 ==
+    return (producer_string + """== 注释与外部链接 ==
 <references/>
 [[分类:日本音乐作品]]
-[[分类:使用VOCALOID的歌曲]]\n""" + \
-           join_string(song.creators.vocalists_str(),
-                       deliminator="\n", mapper=name_to_cat,
-                       outer_wrapper=('[[分类:', '歌曲]]'))
+[[分类:使用VOCALOID的歌曲]]\n""" +
+            join_string(song.creators.vocalists_str(),
+                        deliminator="\n", mapper=name_to_cat,
+                        outer_wrapper=('[[分类:', '歌曲]]')))
 
 
 def get_video_bilibili() -> Union[Video, None]:
