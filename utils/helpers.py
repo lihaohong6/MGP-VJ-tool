@@ -1,19 +1,11 @@
-import re
-from datetime import datetime
+import math
+from typing import Union, Callable
 
 import requests
 
+from models.song import Lyrics
 from models.video import Video, Site
-
-
-def auto_lj(s: str) -> str:
-    if s.isascii():
-        return s
-    return "{{lj|" + s + "}}"
-
-
-def is_empty(s: str) -> bool:
-    return not s or s.isspace() or len(s) == 0
+from utils.string import is_empty
 
 
 def download_file(url, target):
@@ -24,47 +16,60 @@ def download_file(url, target):
                 f.write(chunk)
 
 
-def split(s: str, regex: str = "[・/，, ]+") -> list[str]:
-    return re.split(regex, s)
-
-
-def prompt_choices(prompt: str, choices: list[str]):
+def prompt_response(prompt: str, auto_strip: bool = True,
+                    validity_checker: Callable[[str], bool] = lambda x: True) -> str:
     print(prompt)
-    for index, choice in enumerate(choices):
-        print(f"{index + 1}: {choice}")
     while True:
-        response = input()
+        s = input()
+        if auto_strip:
+            s = s.strip()
+        if validity_checker(s):
+            return s
+
+
+def get_number_validity_checker(start: int, end: int) -> Callable[[str], bool]:
+    def validity_checker(response: str):
         try:
             r = int(response)
-            if 1 <= r <= len(choices):
-                return r
+            if start <= r <= end:
+                return True
             else:
                 print(f"{r} is not in range.")
         except Exception as e:
             print(e)
-            continue
+            return False
+
+    return validity_checker
 
 
-def prompt_response(prompt: str, auto_strip: bool = True) -> str:
+def prompt_choices(prompt: str, choices: list[str], allow_zero: bool = False) -> int:
+    prompt += "\n" + "\n".join([f"{index + 1}: {choice}"
+                                for index, choice in enumerate(choices)])
+    min_val = 0 if allow_zero else 1
+    return int(prompt_response(prompt, validity_checker=get_number_validity_checker(min_val, len(choices))))
+
+
+def prompt_number(prompt: str, start: int = -math.inf, end: int = math.inf) -> int:
+    return int(prompt_response(prompt, validity_checker=get_number_validity_checker(start, end)))
+
+
+def prompt_multiline(prompt: str, terminator: Union[Callable[[str], bool], str] = is_empty,
+                     auto_strip: bool = True) -> list[str]:
+    if isinstance(terminator, str):
+        string = terminator
+
+        def t(x: str): return x == string
+
+        terminator = t
     print(prompt)
-    s = input()
-    if auto_strip:
-        return s.strip()
-    return s
-
-
-def prompt_multiline(prompt: str) -> list[str]:
-    print(prompt + " End with empty line.")
     res = []
     while True:
         s = input()
-        if is_empty(s):
+        if terminator(s):
             return res
+        if auto_strip:
+            s = s.strip()
         res.append(s)
-
-
-def datetime_to_ymd(u: datetime) -> str:
-    return f"{u.year}年{u.month}月{u.day}日"
 
 
 def only_canonical_videos(videos: list[Video]) -> list[Video]:
@@ -78,14 +83,25 @@ def get_video(videos: list[Video], site: Site):
     return None
 
 
-def list_to_str(l: list[str]) -> str:
-    if len(l) == 0:
-        return ""
-    if len(l) == 1:
-        return l[0]
-    front = "、".join(l[:len(l) - 1])
-    return front + "和" + l[-1]
-
-
-def assert_str_exists(s: str) -> str:
-    return s if not is_empty(s) else "ERROR!"
+def get_manual_lyrics() -> Lyrics:
+    name = prompt_response("Source name?")
+    url = prompt_response("Source url?")
+    translator = prompt_response("Translator name?")
+    translation = prompt_multiline("Translation? End with 'END'", terminator="END")
+    choice = prompt_choices("Process translation?", ["Sure.", "It's good enough."])
+    if choice == 2:
+        return Lyrics(translator=translator, source_name=name, source_url=url, lyrics="\n".join(translation))
+    group_length = prompt_number("How many lines form a translation group?")
+    target_line = prompt_number("Which line contains Chinese lyrics?")
+    index = 0
+    result = []
+    while index < len(translation):
+        if is_empty(translation[index]):
+            if len(translation) > 0 and not is_empty(result[-1]):
+                result.append("")
+            index += 1
+        else:
+            result.append(translation[index + target_line - 1])
+            index += group_length
+    return Lyrics(staff=[], translator=translator, source_name=name, source_url=url,
+                  lyrics="\n".join(result))

@@ -4,7 +4,9 @@ import re
 import requests
 from bs4 import BeautifulSoup
 import data
-from utils.helpers import prompt_response, is_empty
+from models.song import Lyrics
+from utils.helpers import prompt_response, prompt_choices
+from utils.string import is_empty
 
 
 def parse_at_wiki_header(header: str) -> list[tuple[str, str]]:
@@ -56,31 +58,31 @@ def parse_at_wiki_body(body: str) -> str:
     return "\n".join(result)
 
 
-def get_at_wiki_body(name: str, url: str, lang: str) -> (list[tuple[str, str]], str):
+def get_at_wiki_body(name: str, url: str, lang: str) -> Lyrics:
     soup = BeautifulSoup(requests.get(url).text, "html.parser")
     # TODO: more robust searching mechanism
     match = soup.find("div", {"id": "wikibody"}).find("ul").find_all("li", limit=1)
     if len(match) == 0 or not match[0].find("a") or match[0].find("a").text != name:
-        url = prompt_response(lang + " lyrics not found on atwiki. Supply manually?")
+        url = prompt_response("Atwiki song not found. Supply URL?")
         if is_empty(url):
-            return [], None
-        else:
-            print("Using " + url + " as url.")
+            return Lyrics()
     else:
+        # FIXME: adjust for multiple songs found
         url = "https:" + match[0].find("a").get("href")
-    logging.info("At wiki url " + url)
-    data.chinese_at_wiki_id = url[url.rfind("pageid=") + 7:]
-    logging.info("At wiki id " + data.chinese_at_wiki_id)
+    logging.debug("At wiki url " + url)
     soup = BeautifulSoup(requests.get(url).text, "html.parser")
-    return parse_body(name, soup.find("div", {"id": "wikibody"}).text)
+    res = parse_body(name, soup.find("div", {"id": "wikibody"}).text)
+    return Lyrics(staff=res[0], source_name="VOCALOID中文wiki", source_url=url, lyrics=res[1])
 
 
 def parse_body(name: str, text: str) -> (list[tuple[str, str]], str):
     index_comment = text.find("\nコメント\n")
     if index_comment != -1:
         text = text[:index_comment]
-    colon_index = text.rfind("：")
-    divider = text.find("\n", colon_index)
+    split_index = max(text.find("翻譯"), text.find("翻译"))
+    if split_index == -1:
+        split_index = text.find("：")
+    divider = text.find("\n", split_index)
     header = text[:divider]
     body = text[divider:]
     keywords = ["ブロマガより転載", "\n歌詞\n", "\n" + name + "\n"]
@@ -92,7 +94,14 @@ def parse_body(name: str, text: str) -> (list[tuple[str, str]], str):
     return parse_at_wiki_header(header), parse_at_wiki_body(body)
 
 
+def get_chinese_lyrics(name: str) -> Lyrics:
+    logging.info("Trying to fetch Chinese lyrics from atwiki.")
+    url_chs = f"https://w.atwiki.jp/vocaloidchly/search?andor=and&keyword={name}"
+    return get_at_wiki_body(name, url_chs, "Chinese")
+
+
 def get_lyrics(name: str) -> (list[tuple[str, str]], str, str):
+    raise NotImplementedError("This function is deprecated.")
     url_jap = f"https://w.atwiki.jp/hmiku/search?andor=and&keyword={name}"
     url_chs = f"https://w.atwiki.jp/vocaloidchly/search?andor=and&keyword={name}"
     jap = get_at_wiki_body(name, url_jap, "Japanese")

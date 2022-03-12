@@ -1,0 +1,138 @@
+import json
+import logging
+import urllib
+from typing import Union
+
+import requests
+
+import utils.string
+from models.song import Song
+from models.creators import Person, Creators, role_transform
+from models.video import Video, Site, video_from_site
+from utils.at_wiki import get_chinese_lyrics
+from utils.helpers import prompt_choices, get_manual_lyrics
+from utils.string import split, is_empty
+from utils.name_converter import name_shorten
+
+# songType = Original? do not specify?
+
+VOCADB = "vocadb.net/api/songs?start=0&getTotalCount=true&maxResults=100" \
+         "&query={}&fields=AdditionalNames%2CThumbUrl&lang=Default&nameMatchMode=Auto" \
+         "&sort=PublishDate&" \
+         "childTags=false&artistParticipationStatus=Everything&onlyWithPvs=false"
+
+
+def parse_creators(artists: list, artist_string: str) -> Creators:
+    mapping: dict[str, list[Person]] = dict()
+    for artist in artists:
+        if 'artist' in artist:
+            name = artist['artist']['name']
+            if artist['artist']['artistType'] == 'Vocaloid':
+                # shorten names like 初音ミク V4X
+                name = name_shorten(name)
+            names_other = split(artist['artist']['additionalNames'])
+        else:
+            name = artist['name']
+            names_other = []
+        roles = artist['roles']
+        if roles == 'Default':
+            roles = artist['categories']
+        if roles == 'Other':
+            continue
+        roles = split(roles)
+        person = Person(name.strip(), names_other)
+        for role in roles:
+            role = role.strip()
+            if role in mapping:
+                mapping[role].append(person)
+            else:
+                mapping[role] = [person]
+    if "Vocalist" in mapping:
+        vocalists: list[Person] = mapping.get("Vocalist")
+    else:
+        names = split(artist_string.split("feat.")[1])
+        vocalists: list[Person] = [Person(name_shorten(n)) for n in names]
+    if "Producer" in mapping:
+        producers = mapping.pop("Producer")
+    else:
+        names = split(artist_string.split("feat.")[0])
+        producers = [Person(n) for n in names if not is_empty(n)]
+    staffs: dict = dict()
+    for role in mapping:
+        staffs[role_transform(role)] = mapping[role]
+    if "作词" not in staffs and "作曲" not in staffs:
+        staffs['词曲'] = producers
+    elif "作词" not in staffs:
+        staffs['作词'] = producers
+    elif "作曲" not in staffs:
+        staffs['作曲'] = producers
+    if "曲绘" not in staffs and "PV制作" in staffs:
+        staffs["曲绘"] = staffs["PV制作"]
+    return Creators(producers, vocalists, staffs)
+
+
+def parse_videos(videos: list) -> list[Video]:
+    service_to_site: dict = {
+        'NicoNicoDouga': Site.NICO_NICO,
+        'Youtube': Site.YOUTUBE
+    }
+    result = []
+    for v in videos:
+        service = v['service']
+        if v['pvType'] == 'Original' and service in service_to_site.keys():
+            url = v['url']
+            # FIXME: only one video per site allowed for now
+            result.append(video_from_site(service_to_site.pop(service), url))
+    return result
+
+
+def parse_albums(albums: list) -> list[str]:
+    return [a['defaultName'] for a in albums]
+
+
+def get_song_by_name(song_name: str):
+    song_id = search_song_id(song_name)
+    logging.info(f"Fetching song details with id {song_id} from vocadb.")
+    url = f"https://vocadb.net/api/songs/{song_id}/details"
+    response = json.loads(requests.get(url).text)
+    logging.debug("JSON response from vocadb:\n" + str(response))
+    name_ja = song_name
+    name_other = [n.strip() for n in utils.string.split(",")]
+    creators: Creators = parse_creators(response['artists'], response['artistString'])
+    lyrics_ja = get_lyrics(response['lyricsFromParents'][0]['id'])
+    lyrics_chs = get_chinese_lyrics(song_name)
+    if not lyrics_chs.lyrics:
+        choice = prompt_choices("Supply Chinese translation manually?",
+                                ["Sure.", "No translation exists."])
+        if choice == 1:
+            lyrics_chs = get_manual_lyrics()
+    videos = parse_videos(response['pvs'])
+    albums = parse_albums(response['albums'])
+    return Song(name_ja, "", name_other, creators, lyrics_ja, lyrics_chs, videos, albums)
+
+
+def get_lyrics(lyrics_id: str) -> str:
+    logging.info("Getting Japanese lyrics from vocadb.")
+    url = f"https://vocadb.net/api/songs/lyrics/{lyrics_id}?v=25"
+    response = json.loads(requests.get(url).text)
+    return response['value']
+
+
+def search_song_id(name: str) -> Union[str, None]:
+    logging.info(f"Searching for song named {name} on Vocadb")
+    url = VOCADB.format(urllib.parse.quote(name, "&/=?%"))
+    url = "https://" + url
+    logging.debug("Search url " + url)
+    response = json.loads(requests.get(url).text)['items']
+    response = [song for song in response if song['defaultName'] == name]
+    if len(response) == 0:
+        print("No entry found in VOCADB.")
+        exit(1)
+        return None
+    if len(response) > 1:
+        options = [f"{song['defaultName']} by {song['artistString']}"
+                   for song in response]
+        result = prompt_choices("Multiple results found. Choose the correct one.", options)
+        return response[result - 1]['id']
+    r = response[0]['id']
+    return r

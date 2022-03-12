@@ -9,8 +9,16 @@ vocaloid_names = {
     '神威がくぽ': "神威乐步",
     'ブイフラワ': "v flower",
     'イア': "IA",
-    'マユ': "MAYU"
+    'マユ': "MAYU",
+    'GUMI': "GUMI",
 }
+
+
+def name_shorten(name: str) -> str:
+    for n in vocaloid_names.keys():
+        if n in name:
+            return n
+    return name
 
 
 def name_to_chinese(name: str) -> str:
