@@ -1,4 +1,4 @@
-# MGP-VJ-Tool 自动生成萌娘百科VJ条目
+# MGP-VJ-Tool 萌娘百科VJ条目辅助工具
 
 Automatically generates Wikitext for Japanese VOCALOID songs, tailored specifically for the [Chinese Moegirlpedia](https://zh.moegirl.org.cn). If you are not a Chinese speaker, this project is probably useless to you.
 
@@ -10,7 +10,7 @@ Automatically generates Wikitext for Japanese VOCALOID songs, tailored specifica
 
 确保以下要求被满足：
 * 安装了`Python3.9`或更高（3.9以下的版本可能可以，但是没有测试过），并且`Python`在`path`里。安装程序一般会自动将`Python`加入`path`，所以不用手动添加。
-* 安装程序依赖的库。可以直接运行`run.bat`，也可以手动用`pip` [安装](https://packaging.python.org/en/latest/tutorials/installing-packages/#requirements-files) 。所有的依赖都在`requirements.txt`中。目前只有[requests](https://github.com/psf/requests) 和 [beautifulsoup4](https://www.crummy.com/software/BeautifulSoup/) 
+* 安装程序依赖的库。可以直接运行`install.bat`，也可以手动用`pip` [安装](https://packaging.python.org/en/latest/tutorials/installing-packages/#requirements-files) 。所有的依赖都在`requirements.txt`中。目前只有[requests](https://github.com/psf/requests) 和 [beautifulsoup4](https://www.crummy.com/software/BeautifulSoup/) 
 
 运行`run.bat`（Windows）或`run.sh`（OS X），或者在命令行中输入
 ```shell
@@ -44,3 +44,4 @@ python3 main.py
 * 添加文件输入歌曲信息，而不是局限于控制台，避免输入半天信息结果发现输错了必须重来的尴尬。难度同上（其实可以直接用pipe达成）。
 * 自动上传封面至萌娘共享。开发者不懂MW api，不会做。如果需求过多开发者可以试着学怎么整。
 * 更智能的歌词选择：现在已经可以去除大部分开头与歌词无关的内容。但是不一定能适配所有AtWiki条目。
+* 自动光污染。目前生成的条目颜色很丑，必须手动修改颜色。也许可以让用户提供一两个颜色，然后自动填色。
