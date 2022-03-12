@@ -7,10 +7,13 @@ input.txt
 
 .DS_Store
 env.sh
+*.zip
 
+build/
 output/
 out/
 temp/
+dist/
 
 __pycache__
 
