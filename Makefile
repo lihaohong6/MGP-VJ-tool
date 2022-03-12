@@ -3,7 +3,7 @@
 ifeq ($(OS),Windows_NT)
 FILE_NAME = 'Windows10.zip'
 else
-FILE_NAME = 'OS X.zip'
+FILE_NAME = 'macOS.zip'
 endif
 
 build: dist
@@ -14,5 +14,5 @@ dist: main.py
 	pyinstaller -F main.py
 
 clean:
-	rm -r output dist build
-	rm logs.txt main.spec
+	rm -rf output dist build
+	rm -f logs.txt main.spec macOS.zip Windows10.zip
