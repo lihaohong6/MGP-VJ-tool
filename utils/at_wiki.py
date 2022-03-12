@@ -63,7 +63,7 @@ def get_at_wiki_body(name: str, url: str, lang: str) -> Lyrics:
     # TODO: more robust searching mechanism
     match = soup.find("div", {"id": "wikibody"}).find("ul").find_all("li", limit=1)
     if len(match) == 0 or not match[0].find("a") or match[0].find("a").text != name:
-        url = prompt_response("Atwiki song not found. Supply URL?")
+        url = prompt_response(f"Atwiki song in {lang} not found. Supply URL?")
         if is_empty(url):
             return Lyrics()
     else:
@@ -92,6 +92,12 @@ def parse_body(name: str, text: str) -> (list[tuple[str, str]], str):
     index = body.find("\n", index) + 1
     body = body[index:]
     return parse_at_wiki_header(header), parse_at_wiki_body(body)
+
+
+def get_japanese_lyrics(name: str) -> str:
+    logging.info("Trying to fetch Japanese lyrics from atwiki.")
+    url_jap = f"https://w.atwiki.jp/hmiku/search?andor=and&keyword={name}"
+    return get_at_wiki_body(name, url_jap, "Japanese").lyrics
 
 
 def get_chinese_lyrics(name: str) -> Lyrics:

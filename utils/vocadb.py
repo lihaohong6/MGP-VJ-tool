@@ -9,7 +9,7 @@ import utils.string
 from models.song import Song
 from models.creators import Person, Creators, role_transform
 from models.video import Video, Site, video_from_site
-from utils.at_wiki import get_chinese_lyrics
+from utils.at_wiki import get_chinese_lyrics, get_japanese_lyrics
 from utils.helpers import prompt_choices, get_manual_lyrics
 from utils.string import split, is_empty
 from utils.name_converter import name_shorten
@@ -82,7 +82,9 @@ def parse_videos(videos: list) -> list[Video]:
         if v['pvType'] == 'Original' and service in service_to_site.keys():
             url = v['url']
             # FIXME: only one video per site allowed for now
-            result.append(video_from_site(service_to_site.pop(service), url))
+            video = video_from_site(service_to_site.pop(service), url)
+            if video:
+                result.append(video)
     return result
 
 
@@ -99,7 +101,12 @@ def get_song_by_name(song_name: str):
     name_ja = song_name
     name_other = [n.strip() for n in utils.string.split(",")]
     creators: Creators = parse_creators(response['artists'], response['artistString'])
-    lyrics_ja = get_lyrics(response['lyricsFromParents'][0]['id'])
+    lyricsList = response['lyricsFromParents']
+    if len(lyricsList) > 0:
+        lyrics_ja = get_lyrics(response['lyricsFromParents'][0]['id'])
+    else:
+        print("Lyrics not found on vocadb.")
+        lyrics_ja = get_japanese_lyrics(name_ja)
     lyrics_chs = get_chinese_lyrics(song_name)
     if not lyrics_chs.lyrics:
         choice = prompt_choices("Supply Chinese translation manually?",

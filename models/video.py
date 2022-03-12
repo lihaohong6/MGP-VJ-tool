@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import datetime
 from enum import Enum
+from typing import Union
 
 import requests
 from bs4 import BeautifulSoup
@@ -94,15 +95,20 @@ def get_bb_info(vid: str) -> Video:
     return Video(Site.BILIBILI, vid, url, views, date, pic)
 
 
-def get_yt_info(vid: str) -> Video:
+def get_yt_info(vid: str) -> Union[Video, None]:
     if vid.find("youtube.") != -1:
         vid = vid[vid.find("=") + 1:]
     elif vid.find("youtu.be") != -1:
         vid = vid[vid.rfind("/") + 1:]
     url = 'https://www.youtube.com/watch?v=' + vid
     text = requests.get(url).text
+    logging.debug(text)
     soup = BeautifulSoup(text, "html.parser")
-    views = int(soup.select_one('meta[itemprop="interactionCount"][content]')['content'])
+    interaction = soup.select_one('meta[itemprop="interactionCount"][content]')
+    if not interaction:
+        logging.info("Failed to obtain info from " + url)
+        return None
+    views = int(interaction['content'])
     date = str_to_date(soup.select_one('meta[itemprop="datePublished"][content]')['content'])
     return Video(Site.YOUTUBE, vid, url, views, date,
                  thumb_url="https://img.youtube.com/vi/{}/0.jpg".format(vid))
@@ -135,10 +141,12 @@ def view_count_from_site(video: Video) -> str:
     return "ERROR"
 
 
-def video_from_site(site: Site, identifier: str, canonical: bool = True) -> Video:
+def video_from_site(site: Site, identifier: str, canonical: bool = True) -> Union[Video, None]:
     logging.info(f"Fetching video from {site.value}")
     logging.debug(f"Video identifier: {identifier}")
     v = info_func[site](identifier)
+    if not v:
+        return None
     v.canonical = canonical
     return v
 
