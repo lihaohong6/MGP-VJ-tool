@@ -58,6 +58,13 @@ def parse_at_wiki_body(body: str) -> str:
     return "\n".join(result)
 
 
+def shorten_url(url: str) -> str:
+    if "&pageid=" in url:
+        page_id = url.split("pageid=")[1]
+        url = f"https://w.atwiki.jp/vocaloidchly/pages/{page_id}.html"
+    return url
+
+
 def get_at_wiki_body(name: str, url: str, lang: str) -> Lyrics:
     soup = BeautifulSoup(requests.get(url).text, "html.parser")
     # TODO: more robust searching mechanism
@@ -72,7 +79,7 @@ def get_at_wiki_body(name: str, url: str, lang: str) -> Lyrics:
     logging.debug("At wiki url " + url)
     soup = BeautifulSoup(requests.get(url).text, "html.parser")
     res = parse_body(name, soup.find("div", {"id": "wikibody"}).text)
-    return Lyrics(staff=res[0], source_name="VOCALOID中文wiki", source_url=url, lyrics=res[1])
+    return Lyrics(staff=res[0], source_name="VOCALOID中文wiki", source_url=shorten_url(url), lyrics=res[1])
 
 
 def parse_body(name: str, text: str) -> (list[tuple[str, str]], str):

@@ -50,6 +50,8 @@ def create_header(song: Song) -> str:
             top = "{{VOCALOID传说曲题头}}\n"
         else:
             top = "{{VOCALOID殿堂曲题头}}\n"
+    if song.name_chs != song.name_jap:
+        top += "{{标题替换|" + song.name_jap + "}}\n"
     sites = {
         Site.NICO_NICO: "nnd_id",
         Site.BILIBILI: "bb_id",
