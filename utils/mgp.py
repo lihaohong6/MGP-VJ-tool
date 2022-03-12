@@ -1,5 +1,7 @@
+import asyncio
 import logging
 import urllib
+from typing import Union
 
 import requests
 from bs4 import BeautifulSoup
@@ -22,14 +24,20 @@ def producer_template_exists(name: str) -> bool:
     return False
 
 
-def get_producer_templates(producers: list[Person]) -> list[str]:
+async def check_template_names(names: list[str]) -> Union[str, None]:
+    for name in names:
+        if producer_template_exists(name):
+            return name
+    return None
+
+
+async def get_producer_templates(producers: list[Person]) -> list[str]:
     logging.info("Fetching producer templates for " + ", ".join([p.name for p in producers]))
     result = []
     for producer in producers:
         names = [producer.name, *producer.name_eng]
         names.extend([name[:-1] for name in names if name[-1] == 'P'])
-        for name in names:
-            if producer_template_exists(name):
-                result.append(name)
-                break
+        result.append(asyncio.create_task(check_template_names(names)))
+    result = [await r for r in result]
+    result = [r for r in result if r]
     return result

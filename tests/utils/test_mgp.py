@@ -1,3 +1,4 @@
+import asyncio
 from unittest import TestCase
 
 from models.creators import Person
@@ -19,4 +20,4 @@ class TestProducerTemplate(TestCase):
         producers = [Person("WowakaP", ["黑幕"]),
                      Person("谁也不是", ["胡话P", "LyricsKai"]),
                      Person("什么鬼", ["HarryP", "针原翼"])]
-        self.assertEquals(['Wowaka', 'HarryP'], get_producer_templates(producers))
+        self.assertEquals(['Wowaka', 'HarryP'], asyncio.run(get_producer_templates(producers)))
