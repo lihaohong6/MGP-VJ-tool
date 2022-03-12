@@ -206,10 +206,10 @@ def create_uploader_note(song: Song) -> str:
     response = prompt_choices("Uploader note?", choices=["Yes", "No"])
     if response == 2:
         return ""
-    japanese = prompt_multiline("Input Japanese version. End input with a single line of 'END'.",
+    japanese = prompt_multiline("Input Japanese version. End input with empty line.",
                                 terminator=is_empty)
     japanese = "<br/>".join(japanese)
-    chinese = prompt_multiline("Input Chinese version. End input with a single line of 'END'",
+    chinese = prompt_multiline("Input Chinese version. End input with empty line",
                                terminator=is_empty)
     chinese = "<br/>".join(chinese)
     return f"""{{{{Cquote|{{{{lj|{japanese}}}}}
