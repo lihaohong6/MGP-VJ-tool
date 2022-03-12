@@ -6,15 +6,15 @@ import asyncio
 import logging
 import sys
 import traceback
-from pathlib import Path
 from typing import Union
 
 import data
 from models.song import Song
 from models.creators import Person, person_list_to_str, Staff, role_priority
 from models.video import Site, video_from_site, Video, view_count_from_site
-from utils.helpers import download_file, prompt_choices, prompt_response, only_canonical_videos, get_video, \
+from utils.helpers import prompt_choices, prompt_response, only_canonical_videos, get_video, \
     prompt_multiline
+from utils.image import write_to_file, download_thumbnail
 from utils.mgp import get_producer_templates
 from utils.name_converter import name_to_cat, name_to_chinese
 from utils.string import auto_lj, is_empty, datetime_to_ymd, assert_str_exists, join_string
@@ -183,27 +183,6 @@ def setup_logger():
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.INFO)
     logger.addHandler(handler)
-
-
-def write_to_file(output: str, filename: str):
-    Path("./output").mkdir(exist_ok=True)
-    f = open(f"./output/{filename}", "w", encoding="UTF-8")
-    f.write(output)
-    f.close()
-
-
-def download_thumbnail(videos: list[Video], filename: str):
-    weight = {
-        Site.YOUTUBE: 0,
-        Site.BILIBILI: 1,
-        Site.NICO_NICO: 2
-    }
-    videos = sorted(videos, key=lambda vid: weight[vid.site])
-    for v in videos:
-        if v.thumb_url:
-            print("Downloading cover from " + v.site.value + " with url " + v.thumb_url)
-            download_file(v.thumb_url, f"./output/{filename}")
-            break
 
 
 def create_uploader_note(song: Song) -> str:

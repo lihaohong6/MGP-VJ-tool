@@ -112,7 +112,7 @@ def get_song_by_name(song_name: str) -> Union[Song, None]:
     if len(lyricsList) > 0:
         lyrics_ja = get_lyrics(response['lyricsFromParents'][0]['id'])
     else:
-        print("Lyrics not found on vocadb.")
+        logging.warning("Lyrics not found on vocadb.")
         lyrics_ja = get_japanese_lyrics(name_ja)
     lyrics_chs = get_chinese_lyrics(song_name)
     if not lyrics_chs.lyrics:
