@@ -4,6 +4,7 @@
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import logging
 import sys
+import traceback
 from pathlib import Path
 from typing import Union
 
@@ -180,6 +181,8 @@ def main():
     if is_empty(data.name_chinese):
         data.name_chinese = data.name_japanese
     song = get_song_by_name(data.name_japanese)
+    if not song:
+        raise NotImplementedError("No source of information exists besides VOCADB.")
     song.name_chs = data.name_chinese
     video_bilibili = get_video_bilibili()
     if video_bilibili:
@@ -194,7 +197,7 @@ def main():
     lyrics = create_lyrics(song)
     end = create_end(song)
     Path("./output").mkdir(exist_ok=True)
-    f = open(f"./output/{data.name_chinese}.wikitext", "w")
+    f = open(f"./output/{data.name_chinese}.wikitext", "w", encoding="UTF-8")
     f.write("\n".join([header, intro, song_body, lyrics, end]))
     weight = {
         Site.YOUTUBE: 0,
@@ -213,6 +216,17 @@ def main():
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+        exit(0)
+    except NotImplementedError as e:
+        logging.error("NotImplementedError")
+        logging.error(str(e))
+    except Exception as e:
+        logging.error(traceback.format_exc())
+        logging.error(str(e))
+        logging.error("This error is unexpected. "
+                      "Please go to https://github.com/syccxcc/MGP-VJ-tool/issues to report this issue.")
+    input("Press Enter to exit...")
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

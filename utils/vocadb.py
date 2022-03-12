@@ -16,10 +16,15 @@ from utils.name_converter import name_shorten
 
 # songType = Original? do not specify?
 
-VOCADB = "vocadb.net/api/songs?start=0&getTotalCount=true&maxResults=100" \
-         "&query={}&fields=AdditionalNames%2CThumbUrl&lang=Default&nameMatchMode=Auto" \
-         "&sort=PublishDate&" \
-         "childTags=false&artistParticipationStatus=Everything&onlyWithPvs=false"
+VOCADB_NARROW = "vocadb.net/api/songs?start=0&getTotalCount=true&maxResults=100" \
+                "&query={}&fields=AdditionalNames%2CThumbUrl&lang=Default&nameMatchMode=Auto" \
+                "&sort=PublishDate" \
+                "&songTypes=Original&childTags=false&artistParticipationStatus=Everything&onlyWithPvs=false"
+
+VOCADB_BROAD = "vocadb.net/api/songs?start=0&getTotalCount=true&maxResults=100" \
+               "&query={}&fields=AdditionalNames%2CThumbUrl&lang=Default&nameMatchMode=Auto" \
+               "&sort=PublishDate" \
+               "&childTags=false&artistParticipationStatus=Everything&onlyWithPvs=false"
 
 
 def parse_creators(artists: list, artist_string: str) -> Creators:
@@ -92,8 +97,10 @@ def parse_albums(albums: list) -> list[str]:
     return [a['defaultName'] for a in albums]
 
 
-def get_song_by_name(song_name: str):
+def get_song_by_name(song_name: str) -> Union[Song, None]:
     song_id = search_song_id(song_name)
+    if not song_id:
+        return None
     logging.info(f"Fetching song details with id {song_id} from vocadb.")
     url = f"https://vocadb.net/api/songs/{song_id}/details"
     response = json.loads(requests.get(url).text)
@@ -125,21 +132,49 @@ def get_lyrics(lyrics_id: str) -> str:
     return response['value']
 
 
-def search_song_id(name: str) -> Union[str, None]:
-    logging.info(f"Searching for song named {name} on Vocadb")
-    url = VOCADB.format(urllib.parse.quote(name, "&/=?%"))
-    url = "https://" + url
+def search_with_url(url: str, name: str) -> list:
     logging.debug("Search url " + url)
     response = json.loads(requests.get(url).text)['items']
     response = [song for song in response if song['defaultName'] == name]
+    return response
+
+
+def search_narrow(name: str) -> list:
+    url = VOCADB_NARROW.format(urllib.parse.quote(name, "&/=?%"))
+    return search_with_url("https://" + url, name)
+
+
+def search_broad(name: str) -> list:
+    url = VOCADB_BROAD.format(urllib.parse.quote(name, "&/=?%"))
+    return search_with_url("https://" + url, name)
+
+
+def search_song_id(name: str) -> Union[str, None]:
+    logging.info(f"Searching for song named {name} on Vocadb")
+    response = search_narrow(name)
+    narrow: bool = True
     if len(response) == 0:
-        print("No entry found in VOCADB.")
-        exit(1)
+        narrow = False
+        logging.info("No result for narrow searching. Now trying broad search.")
+        response = search_broad(name)
+    if len(response) == 0:
+        logging.error("No entry found in VOCADB.")
         return None
-    if len(response) > 1:
+    while len(response) > 1:
         options = [f"{song['defaultName']} by {song['artistString']}"
                    for song in response]
+        options.append("None of the above.")
         result = prompt_choices("Multiple results found. Choose the correct one.", options)
+        if result == len(options):
+            if narrow:
+                narrow = False
+                logging.info("Performing a broader search...")
+                response = search_broad(name)
+                continue
+            else:
+                logging.error("No entry found in VOCADB.")
+                return None
         return response[result - 1]['id']
     r = response[0]['id']
+    logging.info(f"Using {response[0]['defaultName']} by {response[0]['artistString']}")
     return r
