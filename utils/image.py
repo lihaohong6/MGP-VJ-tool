@@ -66,6 +66,8 @@ def pick_color(image: str) -> Color:
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
     target = Coordinate([-1, -1])
     cv2.setMouseCallback(window_name, select_pixel, param=target)
+    height, width, *rest = image.shape
+    cv2.resizeWindow(window_name, width, height)
     cv2.imshow(window_name, image)
     while True:
         if cv2.waitKey(10) != -1:
@@ -73,10 +75,16 @@ def pick_color(image: str) -> Color:
         if target[0] != -1:
             break
     cv2.destroyWindow(window_name)
+    cv2.waitKey(1)
     if target[0] == -1:
+        logging.warning(f"Selected coordinates are ({target[0]}, {target[1]}), which are not valid.")
         target = [0, 0]
     color = image[target[1]][target[0]]
-    return Color(color[2], color[1], color[0])
+    color = Color(color[2], color[1], color[0])
+    logging.info(f"Selected color with HEX {color.to_hex()}, "
+                 f"RGB({color.red}, {color.green}, {color.blue}), "
+                 f"and perceived lightness {color.perceived_lightness()}")
+    return color
 
 
 def download_image(url: str, site: Site, index: int) -> Union[Path, None]:
