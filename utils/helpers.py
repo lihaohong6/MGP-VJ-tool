@@ -91,6 +91,8 @@ def get_manual_lyrics() -> Lyrics:
                 result.append("")
             index += 1
         else:
+            if index + target_line - 1 >= len(translation):
+                break
             result.append(translation[index + target_line - 1])
             index += group_length
     return Lyrics(staff=[], translator=translator, source_name=name, source_url=url,

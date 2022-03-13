@@ -6,7 +6,7 @@ wikitext: !WikitextConfig
   uploader_note: false
 color: !ColorConfig
   # 让用户从图片选择背景颜色
-  color_from_image: true
+  color_from_image: false
   # 如果指定了背景颜色，但是文字颜色没有指定，亮度（0-100）高达多少会使用黑色文字？
   fg_color_threshold: 60
   # 打开森雨亮瞎眼模式；功能未知；副作用未知
