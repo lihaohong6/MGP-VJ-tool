@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from models.creators import Creators
 from models.video import Video
-from utils.image import Color, ColorScheme
+from models.color import Color, ColorScheme
 
 
 @dataclass

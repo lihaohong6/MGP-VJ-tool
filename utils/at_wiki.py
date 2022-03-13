@@ -3,9 +3,9 @@ import re
 
 import requests
 from bs4 import BeautifulSoup
-import data
+from config import data
 from models.song import Lyrics
-from utils.helpers import prompt_response, prompt_choices
+from utils.helpers import prompt_response
 from utils.string import is_empty
 
 

@@ -1,13 +1,13 @@
-import dataclasses
 import logging
 from functools import reduce
 from pathlib import Path
 from typing import Union
 
 import cv2
-import numpy as np
 import requests
 
+from config.config import get_config
+from models.color import Color
 from models.video import Video, Site
 
 
@@ -21,7 +21,6 @@ def download_file(url: str, target: Union[str, Path]) -> bool:
 
 
 def write_to_file(output: str, filename: str):
-    Path("./output").mkdir(exist_ok=True)
     f = open(f"./output/{filename}", "w", encoding="UTF-8")
     f.write(output)
     f.close()
@@ -36,7 +35,7 @@ def bigger_rect(r1, r2):
 def remove_black_boarders(image_in: str, image_out: str):
     img = cv2.imread(image_in)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 20, 255, cv2.THRESH_BINARY)
+    _, thresh = cv2.threshold(gray, get_config().image.crop_threshold, 255, cv2.THRESH_BINARY)
     contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     x, y, w, h = reduce(
         bigger_rect,
@@ -46,60 +45,13 @@ def remove_black_boarders(image_in: str, image_out: str):
     cv2.imwrite(image_out, crop)
 
 
-@dataclasses.dataclass
-class Color:
-    red: int
-    green: int
-    blue: int
-
-    def __getitem__(self, item: int):
-        if item == 0:
-            return self.red
-        if item == 1:
-            return self.green
-        if item == 2:
-            return self.blue
-        raise IndexError("A color only has length 3.")
-
-    def perceived_lightness(self) -> int:
-        vR = self.red / 255
-        vG = self.green / 255
-        vB = self.blue / 255
-
-        def rgb_to_linear(color_channel):
-            if color_channel <= 0.04045:
-                return color_channel / 12.92
-            else:
-                return pow(((color_channel + 0.055) / 1.055), 2.4)
-
-        Y = (0.2126 * rgb_to_linear(vR) +
-             0.7152 * rgb_to_linear(vG) +
-             0.0722 * rgb_to_linear(vB))
-        if Y <= (216 / 24389):
-            ans = Y * (24389 / 27)
-        else:
-            ans = pow(Y, (1 / 3)) * 116 - 16
-        return round(ans)
-
-    def to_hex(self) -> str:
-        return '#%02x%02x%02x' % (self.red, self.green, self.blue)
-
-
-def text_color(c: Color) -> Color:
-    white = Color(255, 255, 255)
-    num = c.perceived_lightness()
-    if num > white.perceived_lightness() / 2:
-        return Color(0, 0, 0)
-    return white
-
-
-@dataclasses.dataclass
-class ColorScheme:
-    text: Color
-    background: Color = None
-
-
 Coordinate = list[int]
+
+
+def image_size(image: str) -> int:
+    img = cv2.imread(image)
+    height, width, *rest = img.shape
+    return height * width
 
 
 def select_pixel(event, x, y, flags, param):
@@ -127,19 +79,56 @@ def pick_color(image: str) -> Color:
     return Color(color[2], color[1], color[0])
 
 
-def download_thumbnail(videos: list[Video], filename: str) -> Union[str, None]:
+def download_image(url: str, site: Site, index: int) -> Union[Path, None]:
+    try:
+        temp_dir = Path("./output/temp.jpeg")
+        logging.info("Downloading cover from " + site.value + " with url " + url)
+        download_file(url, temp_dir)
+        image_name = Path(f"./output/temp{index}.jpeg")
+        if get_config().image.crop:
+            remove_black_boarders(str(temp_dir), str(image_name))
+        else:
+            temp_dir.rename(image_name)
+        return image_name
+    except Exception as e:
+        logging.error("An error occurred while downloading from " + site.value)
+        logging.debug("Debugging info: ", exc_info=e)
+        return None
+
+
+def download_all(videos: list[Video], stop_after_success: bool) -> list[Path]:
+    candidates = []
+    for index, v in enumerate(videos):
+        if v.thumb_url:
+            image = download_image(v.thumb_url, v.site, index)
+            if image:
+                if stop_after_success:
+                    return [image]
+                candidates.append(image)
+    return candidates
+
+
+def download_first(videos: list[Video], target: Path) -> Union[Path, None]:
+    result = download_all(videos, stop_after_success=True)
+    if len(result) == 0:
+        return None
+    return result[0].rename(target)
+
+
+def download_thumbnail(videos: list[Video], filename: str) -> Union[Path, None]:
     weight = {
         Site.YOUTUBE: 0,
         Site.NICO_NICO: 1,
         Site.BILIBILI: 2,
     }
     videos = sorted(videos, key=lambda vid: weight[vid.site])
-    for v in videos:
-        if v.thumb_url:
-            logging.info("Downloading cover from " + v.site.value + " with url " + v.thumb_url)
-            temp_dir = "./output/temp.jpeg"
-            download_file(v.thumb_url, temp_dir)
-            image_name = f"./output/{filename}"
-            remove_black_boarders(temp_dir, image_name)
-            return image_name
-    return None
+    target = Path(Path("./output"), Path(filename))
+    if not get_config().image.download_all:
+        return download_first(videos, target)
+    candidates = download_all(videos, stop_after_success=False)
+    if len(candidates) == 0:
+        return None
+    elif len(candidates) == 1:
+        return candidates[0].rename(target)
+    candidates = sorted([(c, image_size(str(c))) for c in candidates], key=lambda c: c[1])
+    return candidates[-1][0].rename(target)

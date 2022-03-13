@@ -6,15 +6,20 @@ import asyncio
 import logging
 import sys
 import traceback
+from pathlib import Path
 from typing import Union
 
-import data
+import yaml
+
+from config import data
+from config.config import Config, load_config, get_config
 from models.song import Song
 from models.creators import Person, person_list_to_str, Staff, role_priority
 from models.video import Site, video_from_site, Video, view_count_from_site
 from utils.helpers import prompt_choices, prompt_response, only_canonical_videos, get_video, \
     prompt_multiline
-from utils.image import write_to_file, download_thumbnail, pick_color, Color, ColorScheme, text_color
+from utils.image import write_to_file, download_thumbnail, pick_color
+from models.color import Color, text_color, ColorScheme
 from utils.mgp import get_producer_templates
 from utils.name_converter import name_to_cat, name_to_chinese
 from utils.string import auto_lj, is_empty, datetime_to_ymd, assert_str_exists, join_string
@@ -68,11 +73,11 @@ def create_header(song: Song) -> str:
         # FIXME: what's a good deliminator for illustrators?
         image_info = "Illustration by " + join_string(person_list_to_str(illustrator), mapper=auto_lj, deliminator="、")
     return f"""{top}{{{{VOCALOID_Songbox
-|image    = {data.name_chinese}封面.jpg
+|image    = {song.name_chs}封面.jpg
 |图片信息 = {image_info}
 |颜色    = {f"{song.colors.background.to_hex()};color:{song.colors.text.to_hex()}" if song.colors else ''}
 |演唱    = {join_string(song.creators.vocalists_str(), outer_wrapper=("[[", "]]"),
-                       mapper=name_to_chinese, deliminator="、")}
+                      mapper=name_to_chinese, deliminator="、")}
 |歌曲名称 = {"<br/>".join(get_song_names(song))}
 |P主 = {"<br/>".join([auto_lj('[[' + p.name + ']]') for p in song.creators.producers])}
 {video_id}|其他资料 = {"<br/>".join(videos_to_str(videos))}
@@ -182,7 +187,7 @@ def get_video_bilibili() -> Union[Video, None]:
 
 
 def setup_logger():
-    logging.basicConfig(filename="logs.txt", level=logging.INFO,
+    logging.basicConfig(filename="logs.txt", level=logging.DEBUG,
                         format='%(name)s :: %(asctime)s :: %(levelname)-8s :: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
     logger = logging.getLogger()
@@ -192,6 +197,8 @@ def setup_logger():
 
 
 def create_uploader_note(song: Song) -> str:
+    if not get_config().wikitext.uploader_note:
+        return ""
     response = prompt_choices("Uploader note?", choices=["Yes", "No"])
     if response == 2:
         return ""
@@ -211,14 +218,16 @@ def create_uploader_note(song: Song) -> str:
 
 def main():
     setup_logger()
+    load_config("config.yaml")
+    Path("./output").mkdir(exist_ok=True)
     data.name_japanese = prompt_response("Japanese name?")
-    data.name_chinese = prompt_response("Chinese name?")
-    if is_empty(data.name_chinese):
-        data.name_chinese = data.name_japanese
+    name_chinese = prompt_response("Chinese name?")
+    if is_empty(name_chinese):
+        name_chinese = data.name_japanese
     song = get_song_by_name(data.name_japanese)
     if not song:
         raise NotImplementedError("No source of information exists besides VOCADB.")
-    song.name_chs = data.name_chinese
+    song.name_chs = name_chinese
     video_bilibili = get_video_bilibili()
     if video_bilibili:
         song.videos.append(video_bilibili)
@@ -227,9 +236,9 @@ def main():
             song.lyrics_chs.translator = name
             break
     cover_name = f"{song.name_chs}封面.jpeg"
-    file_name = download_thumbnail(song.videos, cover_name)
-    if file_name:
-        color: Color = pick_color(file_name)
+    thumbnail = download_thumbnail(song.videos, cover_name)
+    if thumbnail:
+        color: Color = pick_color(str(thumbnail))
         text = text_color(color)
         song.colors = ColorScheme(text=text, background=color)
     header = create_header(song)
