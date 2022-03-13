@@ -14,7 +14,7 @@ from models.creators import Person, person_list_to_str, Staff, role_priority
 from models.video import Site, video_from_site, Video, view_count_from_site
 from utils.helpers import prompt_choices, prompt_response, only_canonical_videos, get_video, \
     prompt_multiline
-from utils.image import write_to_file, download_thumbnail
+from utils.image import write_to_file, download_thumbnail, pick_color, Color, ColorScheme, text_color
 from utils.mgp import get_producer_templates
 from utils.name_converter import name_to_cat, name_to_chinese
 from utils.string import auto_lj, is_empty, datetime_to_ymd, assert_str_exists, join_string
@@ -70,8 +70,8 @@ def create_header(song: Song) -> str:
     return f"""{top}{{{{VOCALOID_Songbox
 |image    = {data.name_chinese}封面.jpg
 |图片信息 = {image_info}
-|颜色     = 
-|演唱     = {join_string(song.creators.vocalists_str(), outer_wrapper=("[[", "]]"),
+|颜色    = {f"{song.colors.background.to_hex()};color:{song.colors.text.to_hex()}" if song.colors else ''}
+|演唱    = {join_string(song.creators.vocalists_str(), outer_wrapper=("[[", "]]"),
                        mapper=name_to_chinese, deliminator="、")}
 |歌曲名称 = {"<br/>".join(get_song_names(song))}
 |P主 = {"<br/>".join([auto_lj('[[' + p.name + ']]') for p in song.creators.producers])}
@@ -125,11 +125,17 @@ def create_song(song: Song):
     groups: list[str] = [f"|group{index + 1} = {g[0]}\n"
                          f"|list{index + 1} = {join_string(person_list_to_str(g[1]), deliminator='<br/>', mapper=auto_lj)}\n"
                          for index, g in enumerate(groups)]
-    return f"== 歌曲 ==\n" \
-           f"{{{{VOCALOID Songbox Introduction\n" \
-           f"|lbgcolor=#000\n|ltcolor=white\n" \
-           f"{''.join(groups)}" \
-           f"}}}}\n\n{video_player}"
+    if song.colors:
+        color_scheme = song.colors
+        color = f"|lbgcolor={color_scheme.background.to_hex()}\n" \
+                f"|ltcolor={color_scheme.text.to_hex()}\n"
+    else:
+        color = "|lbgcolor=#000\n|ltcolor=white\n"
+    return (f"== 歌曲 ==\n"
+            "{{VOCALOID Songbox Introduction\n"
+            + color +
+            f"{''.join(groups)}"
+            f"}}}}\n\n{video_player}")
 
 
 def create_lyrics(song: Song):
@@ -176,7 +182,7 @@ def get_video_bilibili() -> Union[Video, None]:
 
 
 def setup_logger():
-    logging.basicConfig(filename="logs.txt", level=logging.DEBUG,
+    logging.basicConfig(filename="logs.txt", level=logging.INFO,
                         format='%(name)s :: %(asctime)s :: %(levelname)-8s :: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
     logger = logging.getLogger()
@@ -220,6 +226,12 @@ def main():
         if job == "翻譯" or job == "翻译":
             song.lyrics_chs.translator = name
             break
+    cover_name = f"{song.name_chs}封面.jpeg"
+    file_name = download_thumbnail(song.videos, cover_name)
+    if file_name:
+        color: Color = pick_color(file_name)
+        text = text_color(color)
+        song.colors = ColorScheme(text=text, background=color)
     header = create_header(song)
     uploader_note = create_uploader_note(song)
     intro = create_intro(song)
@@ -228,7 +240,6 @@ def main():
     end = create_end(song)
     write_to_file("\n".join([header, uploader_note, intro, song_body, lyrics, end]),
                   f"{song.name_chs}.wikitext")
-    download_thumbnail(song.videos, f"{song.name_chs}封面.jpeg")
     print("Program ended. Go to output folder for result.")
 
 
