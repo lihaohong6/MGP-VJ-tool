@@ -10,6 +10,7 @@ from yaml.scanner import ScannerError
 @dataclass
 class WikitextConfig(yaml.YAMLObject):
     yaml_tag = u'!WikitextConfig'
+    process_lyrics_jap: bool = True
     lyrics_chs_fail_fast: bool = False
     uploader_note: bool = True
 

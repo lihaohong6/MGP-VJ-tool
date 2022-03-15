@@ -6,9 +6,12 @@ from typing import Union, List, Dict
 import requests
 
 import utils.string
+from config import config
+from config.config import get_config
 from models.song import Song
 from models.creators import Person, Creators, role_transform
 from models.video import Video, Site, video_from_site
+from utils import string
 from utils.at_wiki import get_chinese_lyrics, get_japanese_lyrics
 from utils.helpers import prompt_choices, get_manual_lyrics
 from utils.string import split, is_empty
@@ -114,6 +117,8 @@ def get_song_by_name(song_name: str) -> Union[Song, None]:
     else:
         logging.warning("Lyrics not found on vocadb.")
         lyrics_ja = get_japanese_lyrics(name_ja)
+    if get_config().wikitext.process_lyrics_jap:
+        lyrics_ja = string.process_lyrics_jap(lyrics_ja)
     lyrics_chs = get_chinese_lyrics(song_name)
     if not lyrics_chs.lyrics:
         choice = prompt_choices("Supply Chinese translation manually?",

@@ -1,5 +1,8 @@
+import logging
 import re
+from collections import Counter
 from datetime import datetime
+from itertools import groupby
 from typing import Union, Callable, Tuple, List
 
 
@@ -50,3 +53,18 @@ def join_string(lst: list, deliminator: Union[str, Tuple[str, str]] = ("ã€", "å
         return lst[0]
     front = deliminator[0].join(lst[:len(lst) - 1])
     return front + deliminator[1] + lst[-1]
+
+
+def process_lyrics_jap(lyrics: str) -> str:
+    if is_empty(lyrics):
+        return ""
+    groups = [len(list(repeat)) for char, repeat in groupby(lyrics) if char == '\n']
+    total = len(groups)
+    counter = Counter(groups)
+    if counter.get(1, 0) < total / 2:
+        logging.info("Too many newlines. Trying to remove them.")
+        divider = max(counter.keys(), key=counter.get)
+        # newline chars below the divider -> one line; above the divider -> two lines
+        sections = re.split("\n" * divider + "\n+", lyrics)
+        lyrics = "\n\n".join(["\n".join(re.split("\n+", section)) for section in sections])
+    return lyrics
