@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import urllib
-from typing import Union
+from typing import Union, List
 
 import requests
 from bs4 import BeautifulSoup
@@ -24,14 +24,14 @@ def producer_template_exists(name: str) -> bool:
     return False
 
 
-async def check_template_names(names: list[str]) -> Union[str, None]:
+async def check_template_names(names: List[str]) -> Union[str, None]:
     for name in names:
         if producer_template_exists(name):
             return name
     return None
 
 
-async def get_producer_templates(producers: list[Person]) -> list[str]:
+async def get_producer_templates(producers: List[Person]) -> List[str]:
     logging.info("Fetching producer templates for " + ", ".join([p.name for p in producers]))
     result = []
     for producer in producers:

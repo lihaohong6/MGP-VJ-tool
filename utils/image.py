@@ -1,7 +1,8 @@
 import logging
+from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
-from typing import Union
+from typing import Union, List
 
 import cv2
 import requests
@@ -45,7 +46,17 @@ def remove_black_boarders(image_in: str, image_out: str):
     cv2.imwrite(image_out, crop)
 
 
-Coordinate = list[int]
+@dataclass
+class Coordinate:
+    x: int
+    y: int
+
+    def __getitem__(self, item: int):
+        if item == 0:
+            return self.x
+        elif item == 1:
+            return self.y
+        raise RuntimeError("Invalid item")
 
 
 def image_size(image: str) -> int:
@@ -54,17 +65,17 @@ def image_size(image: str) -> int:
     return height * width
 
 
-def select_pixel(event, x, y, flags, param):
+def select_pixel(event, x, y, flags, param: Coordinate):
     if event == cv2.EVENT_LBUTTONDOWN:
-        param[0] = x
-        param[1] = y
+        param.x = x
+        param.y = y
 
 
 def pick_color(image: str) -> Color:
     image = cv2.imread(image)
     window_name = "Click on the Image to Select a Color"
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-    target = Coordinate([-1, -1])
+    target = Coordinate(-1, -1)
     cv2.setMouseCallback(window_name, select_pixel, param=target)
     height, width, *rest = image.shape
     cv2.resizeWindow(window_name, width, height)
@@ -104,7 +115,7 @@ def download_image(url: str, site: Site, index: int) -> Union[Path, None]:
         return None
 
 
-def download_all(videos: list[Video], stop_after_success: bool) -> list[Path]:
+def download_all(videos: List[Video], stop_after_success: bool) -> List[Path]:
     candidates = []
     for index, v in enumerate(videos):
         if v.thumb_url:
@@ -116,14 +127,14 @@ def download_all(videos: list[Video], stop_after_success: bool) -> list[Path]:
     return candidates
 
 
-def download_first(videos: list[Video], target: Path) -> Union[Path, None]:
+def download_first(videos: List[Video], target: Path) -> Union[Path, None]:
     result = download_all(videos, stop_after_success=True)
     if len(result) == 0:
         return None
     return result[0].rename(target)
 
 
-def download_thumbnail(videos: list[Video], filename: str) -> Union[Path, None]:
+def download_thumbnail(videos: List[Video], filename: str) -> Union[Path, None]:
     weight = {
         Site.YOUTUBE: 0,
         Site.NICO_NICO: 1,

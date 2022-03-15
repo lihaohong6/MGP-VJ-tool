@@ -1,5 +1,5 @@
 import math
-from typing import Union, Callable
+from typing import Union, Callable, List
 
 from models.song import Lyrics
 from models.video import Video, Site
@@ -32,7 +32,7 @@ def get_number_validity_checker(start: int, end: int) -> Callable[[str], bool]:
     return validity_checker
 
 
-def prompt_choices(prompt: str, choices: list[str], allow_zero: bool = False) -> int:
+def prompt_choices(prompt: str, choices: List[str], allow_zero: bool = False) -> int:
     prompt += "\n" + "\n".join([f"{index + 1}: {choice}"
                                 for index, choice in enumerate(choices)])
     min_val = 0 if allow_zero else 1
@@ -44,7 +44,7 @@ def prompt_number(prompt: str, start: int = -math.inf, end: int = math.inf) -> i
 
 
 def prompt_multiline(prompt: str, terminator: Union[Callable[[str], bool], str] = is_empty,
-                     auto_strip: bool = True) -> list[str]:
+                     auto_strip: bool = True) -> List[str]:
     if isinstance(terminator, str):
         string = terminator
 
@@ -62,11 +62,11 @@ def prompt_multiline(prompt: str, terminator: Union[Callable[[str], bool], str] 
         res.append(s)
 
 
-def only_canonical_videos(videos: list[Video]) -> list[Video]:
+def only_canonical_videos(videos: List[Video]) -> List[Video]:
     return [v for v in videos if v.canonical]
 
 
-def get_video(videos: list[Video], site: Site):
+def get_video(videos: List[Video], site: Site):
     for v in videos:
         if v.site == site:
             return v

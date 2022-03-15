@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from typing import Union, Callable
+from typing import Union, Callable, Tuple, List
 
 
 def auto_lj(s: str) -> str:
@@ -13,7 +13,7 @@ def is_empty(s: str) -> bool:
     return not s or s.isspace() or len(s) == 0
 
 
-def split(s: str, regex: str = "[・/，, ]+") -> list[str]:
+def split(s: str, regex: str = "[・/，, ]+") -> List[str]:
     return re.split(regex, s)
 
 
@@ -38,8 +38,8 @@ def split_number(num: int) -> str:
     return ",".join(chunks)
 
 
-def join_string(lst: list, deliminator: Union[str, tuple[str, str]] = ("、", "和"),
-                inner_wrapper: tuple[str, str] = ("", ""), outer_wrapper: tuple[str, str] = ("", ""),
+def join_string(lst: list, deliminator: Union[str, Tuple[str, str]] = ("、", "和"),
+                inner_wrapper: Tuple[str, str] = ("", ""), outer_wrapper: Tuple[str, str] = ("", ""),
                 mapper: Callable = lambda x: x) -> str:
     if isinstance(deliminator, str):
         deliminator = (deliminator, deliminator)

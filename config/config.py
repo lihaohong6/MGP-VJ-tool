@@ -44,11 +44,11 @@ config_xxx = Config()
 def load_config(filename: str):
     global config_xxx
     try:
-        with open(filename) as f:
+        with open(filename, mode="r", encoding="UTF-8") as f:
             config_xxx = yaml.load(f.read(), Loader=Loader)
     except Exception as e:
-        logging.error(e, exc_info=e)
-        print("Fallin back to default config.")
+        logging.debug(e, exc_info=e)
+        logging.info("Cannot read config file. Falling back to default config.")
 
 
 def get_config() -> Config:

@@ -1,7 +1,7 @@
 import json
 import logging
 import urllib
-from typing import Union
+from typing import Union, List, Dict
 
 import requests
 
@@ -28,7 +28,7 @@ VOCADB_BROAD = "vocadb.net/api/songs?start=0&getTotalCount=true&maxResults=100" 
 
 
 def parse_creators(artists: list, artist_string: str) -> Creators:
-    mapping: dict[str, list[Person]] = dict()
+    mapping: Dict[str, List[Person]] = dict()
     for artist in artists:
         if 'artist' in artist:
             name = artist['artist']['name']
@@ -53,10 +53,10 @@ def parse_creators(artists: list, artist_string: str) -> Creators:
             else:
                 mapping[role] = [person]
     if "Vocalist" in mapping:
-        vocalists: list[Person] = mapping.get("Vocalist")
+        vocalists: List[Person] = mapping.get("Vocalist")
     else:
         names = split(artist_string.split("feat.")[1])
-        vocalists: list[Person] = [Person(name_shorten(n)) for n in names]
+        vocalists: List[Person] = [Person(name_shorten(n)) for n in names]
     if "Producer" in mapping:
         producers = mapping.pop("Producer")
     else:
@@ -76,7 +76,7 @@ def parse_creators(artists: list, artist_string: str) -> Creators:
     return Creators(producers, vocalists, staffs)
 
 
-def parse_videos(videos: list) -> list[Video]:
+def parse_videos(videos: list) -> List[Video]:
     service_to_site: dict = {
         'NicoNicoDouga': Site.NICO_NICO,
         'Youtube': Site.YOUTUBE
@@ -93,7 +93,7 @@ def parse_videos(videos: list) -> list[Video]:
     return result
 
 
-def parse_albums(albums: list) -> list[str]:
+def parse_albums(albums: list) -> List[str]:
     return [a['defaultName'] for a in albums]
 
 

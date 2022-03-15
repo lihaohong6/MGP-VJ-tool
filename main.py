@@ -7,32 +7,30 @@ import logging
 import sys
 import traceback
 from pathlib import Path
-from typing import Union
-
-import yaml
+from typing import Union, List
 
 from config import data
-from config.config import Config, load_config, get_config
-from models.song import Song
+from config.config import load_config, get_config
+from models.color import Color, text_color, ColorScheme
 from models.creators import Person, person_list_to_str, Staff, role_priority
+from models.song import Song
 from models.video import Site, video_from_site, Video, view_count_from_site
 from utils.helpers import prompt_choices, prompt_response, only_canonical_videos, get_video, \
     prompt_multiline
 from utils.image import write_to_file, download_thumbnail, pick_color
-from models.color import Color, text_color, ColorScheme
 from utils.mgp import get_producer_templates
 from utils.name_converter import name_to_cat, name_to_chinese
 from utils.string import auto_lj, is_empty, datetime_to_ymd, assert_str_exists, join_string
 from utils.vocadb import get_song_by_name
 
 
-def get_song_names(song: Song) -> list[str]:
+def get_song_names(song: Song) -> List[str]:
     # FIXME: disable name_other?
     names = [auto_lj(song.name_jap), song.name_chs if song.name_chs != song.name_jap else None, *song.name_other]
     return [name for name in names if not is_empty(name)]
 
 
-def videos_to_str(videos: list[Video]) -> list[str]:
+def videos_to_str(videos: List[Video]) -> List[str]:
     videos = only_canonical_videos(videos)
     result = []
     for i in range(len(videos)):
@@ -45,7 +43,7 @@ def videos_to_str(videos: list[Video]) -> list[str]:
     return result
 
 
-def get_people_by_job(staffs: dict, job: str) -> Union[list[Person], None]:
+def get_people_by_job(staffs: dict, job: str) -> Union[List[Person], None]:
     return staffs.get(job, None)
 
 
@@ -85,7 +83,7 @@ def create_header(song: Song) -> str:
 """
 
 
-def videos_to_str2(videos: list[Video]):
+def videos_to_str2(videos: List[Video]):
     videos = only_canonical_videos(videos)
     dates = dict()
     for v in videos:
@@ -125,9 +123,9 @@ def create_song(song: Song):
         video_player = f"{{{{" \
                        f"bilibiliVideo|id={v.identifier}" \
                        f"}}}}"
-    groups: list[Staff] = sorted(song.creators.staff_list(),
+    groups: List[Staff] = sorted(song.creators.staff_list(),
                                  key=lambda staff: role_priority(staff[0]))
-    groups: list[str] = [f"|group{index + 1} = {g[0]}\n"
+    groups: List[str] = [f"|group{index + 1} = {g[0]}\n"
                          f"|list{index + 1} = {join_string(person_list_to_str(g[1]), deliminator='<br/>', mapper=auto_lj)}\n"
                          for index, g in enumerate(groups)]
     if song.colors:

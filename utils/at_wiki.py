@@ -3,15 +3,17 @@ import re
 
 import requests
 from bs4 import BeautifulSoup
+from typing import Tuple, List
+
 from config import data
 from models.song import Lyrics
 from utils.helpers import prompt_response
 from utils.string import is_empty
 
 
-def parse_at_wiki_header(header: str) -> list[tuple[str, str]]:
+def parse_at_wiki_header(header: str) -> List[Tuple[str, str]]:
     lines = header.split("\n")
-    result: list[tuple[str, str]] = []
+    result: List[Tuple[str, str]] = []
     for line in lines:
         index = line.find("：")
         if index != -1:
@@ -31,7 +33,7 @@ def is_lyrics(line: str) -> bool:
                 )
 
 
-def strip_initial_lines(lines: list[str]) -> list[str]:
+def strip_initial_lines(lines: List[str]) -> List[str]:
     index = 0
     while index < len(lines):
         if not is_empty(lines[index]) and is_lyrics(lines[index]):
@@ -82,7 +84,7 @@ def get_at_wiki_body(name: str, url: str, lang: str) -> Lyrics:
     return Lyrics(staff=res[0], source_name="VOCALOID中文wiki", source_url=shorten_url(url), lyrics=res[1])
 
 
-def parse_body(name: str, text: str) -> (list[tuple[str, str]], str):
+def parse_body(name: str, text: str) -> (List[Tuple[str, str]], str):
     index_comment = text.find("\nコメント\n")
     if index_comment != -1:
         text = text[:index_comment]
@@ -113,7 +115,7 @@ def get_chinese_lyrics(name: str) -> Lyrics:
     return get_at_wiki_body(name, url_chs, "Chinese")
 
 
-def get_lyrics(name: str) -> (list[tuple[str, str]], str, str):
+def get_lyrics(name: str) -> (List[Tuple[str, str]], str, str):
     raise NotImplementedError("This function is deprecated.")
     url_jap = f"https://w.atwiki.jp/hmiku/search?andor=and&keyword={name}"
     url_chs = f"https://w.atwiki.jp/vocaloidchly/search?andor=and&keyword={name}"

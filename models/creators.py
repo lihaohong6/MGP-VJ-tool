@@ -1,17 +1,19 @@
 from dataclasses import dataclass, field
 
+from typing import List, Dict, Tuple
+
 
 @dataclass
 class Person:
     name: str
-    name_eng: list[str] = field(default_factory=list)
+    name_eng: List[str] = field(default_factory=list)
 
 
-def person_list_to_str(lst: list[Person]) -> list[str]:
+def person_list_to_str(lst: List[Person]) -> List[str]:
     return [p.name for p in lst]
 
 
-Staff = tuple[str, list[Person]]
+Staff = Tuple[str, List[Person]]
 
 role_mapping = {
     "PLACEHOLDER": "词曲",
@@ -43,15 +45,15 @@ def role_priority(role: str) -> int:
 
 @dataclass
 class Creators:
-    producers: list[Person]
-    vocalists: list[Person]
-    staffs: dict[str, list[Person]]
+    producers: List[Person]
+    vocalists: List[Person]
+    staffs: Dict[str, List[Person]]
 
-    def producers_str(self) -> list[str]:
+    def producers_str(self) -> List[str]:
         return person_list_to_str(self.producers)
 
-    def vocalists_str(self) -> list[str]:
+    def vocalists_str(self) -> List[str]:
         return person_list_to_str(self.vocalists)
 
-    def staff_list(self) -> list[Staff]:
+    def staff_list(self) -> List[Staff]:
         return [(role, self.staffs[role]) for role in self.staffs]
