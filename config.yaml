@@ -1,7 +1,12 @@
 --- !Config
 wikitext: !WikitextConfig
-  # 对日语歌词额外处理（注音，去除多余的换行）
+  # 对日语歌词额外处理（去除多余的换行）
   process_lyrics_jap: true
+  # 检测歌词中的括号，如果括号中都是平假名而且括号前有汉字，将括号中内容
+  # 视为注音并添加photrans模板。
+  furigana_local: true
+  # 从Yahoo，vocadb，Vocaloid Lyrics Wiki等网站获取振假名；暂时没有效果
+  furigana_all: true
   # 检测不到AtWiki的中文翻译后直接放弃，减少使用难度；暂时没有效果
   lyrics_chs_fail_fast: false
   # 是否询问投稿文

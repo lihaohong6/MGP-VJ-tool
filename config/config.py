@@ -1,16 +1,16 @@
 import logging
-import traceback
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import yaml
 from yaml import Loader
-from yaml.scanner import ScannerError
 
 
 @dataclass
 class WikitextConfig(yaml.YAMLObject):
     yaml_tag = u'!WikitextConfig'
     process_lyrics_jap: bool = True
+    furigana_local: bool = True
+    furigana_all: bool = True
     lyrics_chs_fail_fast: bool = False
     uploader_note: bool = True
 
