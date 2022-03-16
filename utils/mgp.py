@@ -1,18 +1,19 @@
 import asyncio
 import logging
 import urllib
-from typing import Union, List
+from typing import Union, List, Tuple
 
 import requests
 from bs4 import BeautifulSoup
 
 from models.creators import Person
 
-BASE = "https://zh.moegirl.org.cn/Template:{}"
+BASE_TEMPLATE = "https://zh.moegirl.org.cn/Template:{}"
+BASE_CAT = "https://zh.moegirl.org.cn/Category:{}作品"
 
 
 def producer_template_exists(name: str) -> bool:
-    url = BASE.format(urllib.parse.quote(name))
+    url = BASE_TEMPLATE.format(urllib.parse.quote(name))
     soup = BeautifulSoup(requests.get(url).text, "html.parser")
     result = soup.find("div", {"id", "mw-normal-catlinks"})
     if not result:
@@ -24,6 +25,13 @@ def producer_template_exists(name: str) -> bool:
     return False
 
 
+def producer_cat_exists(name: str) -> bool:
+    url = BASE_CAT.format(urllib.parse.quote(name))
+    soup = BeautifulSoup(requests.get(url).text, "html.parser")
+    result = soup.find("div", {"id": "topicpath"})
+    return not not result
+
+
 async def check_template_names(names: List[str]) -> Union[str, None]:
     for name in names:
         if producer_template_exists(name):
@@ -31,13 +39,35 @@ async def check_template_names(names: List[str]) -> Union[str, None]:
     return None
 
 
-async def get_producer_templates(producers: List[Person]) -> List[str]:
-    logging.info("Fetching producer templates for " + ", ".join([p.name for p in producers]))
+async def check_cat_names(names: List[str]) -> Union[str, None]:
+    for name in names:
+        if producer_cat_exists(name):
+            return name
+    return None
+
+
+async def producer_checker(producers: List[Person], task):
     result = []
     for producer in producers:
         names = [producer.name, *producer.name_eng]
         names.extend([name[:-1] for name in names if name[-1] == 'P'])
-        result.append(asyncio.create_task(check_template_names(names)))
+        result.append(asyncio.create_task(task(names)))
     result = [await r for r in result]
     result = [r for r in result if r]
     return result
+
+
+async def get_producer_templates(producers: List[Person]) -> List[str]:
+    logging.info("Fetching producer templates for " + ", ".join([p.name for p in producers]))
+    return await producer_checker(producers, check_template_names)
+
+
+async def get_producer_cats(producers: List[Person]) -> List[str]:
+    logging.info("Fetching producer categories for " + ", ".join([p.name for p in producers]))
+    return await producer_checker(producers, check_cat_names)
+
+
+async def get_producer_info(producers: List[Person]) -> Tuple[List[str], List[str]]:
+    task1 = asyncio.create_task(get_producer_templates(producers))
+    task2 = asyncio.create_task(get_producer_cats(producers))
+    return await task1, await task2

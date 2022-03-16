@@ -1,8 +1,9 @@
 import asyncio
+import unittest
 from unittest import TestCase
 
 from models.creators import Person
-from utils.mgp import producer_template_exists, get_producer_templates
+from utils.mgp import producer_template_exists, get_producer_templates, producer_cat_exists, get_producer_cats
 
 
 class TestProducerTemplate(TestCase):
@@ -21,3 +22,22 @@ class TestProducerTemplate(TestCase):
                      Person("谁也不是", ["胡话P", "LyricsKai"]),
                      Person("什么鬼", ["HarryP", "针原翼"])]
         self.assertEquals(['Wowaka', 'HarryP'], asyncio.run(get_producer_templates(producers)))
+
+
+class TestProducerCat(TestCase):
+    def test_cat_exists(self):
+        true = ["wowaka"]
+        for t in true:
+            self.assertTrue(producer_cat_exists(t))
+        false = ["黑幕", "这是一个不存在的分类"]
+        for t in false:
+            self.assertFalse(producer_cat_exists(t))
+
+    def test_get_producer_cats(self):
+        producers = [Person("黑幕", ["wowakaP"]),
+                     Person("谁也不是", ["胡话P", "LyricsKai"])]
+        self.assertEquals(['wowaka'], asyncio.run(get_producer_cats(producers)))
+
+
+if __name__ == "__main__":
+    unittest.main()

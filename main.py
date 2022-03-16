@@ -18,7 +18,7 @@ from models.video import Site, video_from_site, Video, view_count_from_site
 from utils.helpers import prompt_choices, prompt_response, only_canonical_videos, get_video, \
     prompt_multiline
 from utils.image import write_to_file, download_thumbnail, pick_color
-from utils.mgp import get_producer_templates
+from utils.mgp import get_producer_templates, get_producer_cats, get_producer_info
 from utils.name_converter import name_to_cat, name_to_chinese
 from utils.string import auto_lj, is_empty, datetime_to_ymd, assert_str_exists, join_string
 from utils.vocadb import get_song_by_name
@@ -109,7 +109,7 @@ def create_intro(song: Song):
             f"""是由{join_string(song.creators.producers_str()[:1],
                                inner_wrapper=('[[', ']]'),
                                mapper=auto_lj)}""" +
-            videos_to_str2(videos) + "的日文原创歌曲。" +
+            videos_to_str2(videos) + "的[[VOCALOID]]日文原创歌曲。" +
             f"""由{join_string(song.creators.vocalists_str(),
                               outer_wrapper=('[[', ']]'),
                               mapper=name_to_chinese)}演唱。""" +
@@ -163,15 +163,18 @@ def create_lyrics(song: Song):
 
 
 def create_end(song: Song):
-    lst = asyncio.run(get_producer_templates(song.creators.producers))
-    producer_string = join_string(lst, outer_wrapper=("{{Template:", "}}\n"))
-    return (producer_string + """== 注释与外部链接 ==
+    list_templates, list_cats = asyncio.run(get_producer_info(song.creators.producers))
+    producer_templates = join_string(list_templates, deliminator="",
+                                     outer_wrapper=("{{Template:", "}}\n"))
+    producer_cats = join_string(list_cats, deliminator="",
+                                outer_wrapper=("[[Category:", "作品]]\n"))
+    vocalist_cat = join_string(song.creators.vocalists_str(),
+                               deliminator="", mapper=name_to_cat,
+                               outer_wrapper=('[[分类:', '歌曲]]\n'))
+    return (producer_templates + """== 注释与外部链接 ==
 <references/>
 [[分类:日本音乐作品]]
-[[分类:使用VOCALOID的歌曲]]\n""" +
-            join_string(song.creators.vocalists_str(),
-                        deliminator="\n", mapper=name_to_cat,
-                        outer_wrapper=('[[分类:', '歌曲]]')))
+[[分类:使用VOCALOID的歌曲]]\n""" + vocalist_cat + producer_cats)
 
 
 def get_video_bilibili() -> Union[Video, None]:
