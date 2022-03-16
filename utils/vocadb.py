@@ -141,7 +141,12 @@ def get_lyrics(lyrics_id: str) -> str:
 
 def search_with_url(url: str, name: str) -> list:
     logging.debug("Search url " + url)
-    response = json.loads(requests.get(url).text)['items']
+    try:
+        response = json.loads(requests.get(url).text)['items']
+    except Exception as e:
+        logging.error("An error occurred while searching on atwiki with url " + url)
+        logging.debug("Detailed error: ", exc_info=e)
+        return []
     response = [song for song in response if song['defaultName'] == name]
     return response
 

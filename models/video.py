@@ -105,9 +105,6 @@ def get_yt_info(vid: str) -> Union[Video, None]:
     logging.debug(text)
     soup = BeautifulSoup(text, "html.parser")
     interaction = soup.select_one('meta[itemprop="interactionCount"][content]')
-    if not interaction:
-        logging.info("Failed to obtain info from " + url)
-        return None
     views = int(interaction['content'])
     date = str_to_date(soup.select_one('meta[itemprop="datePublished"][content]')['content'])
     return Video(Site.YOUTUBE, vid, url, views, date,
@@ -144,7 +141,12 @@ def view_count_from_site(video: Video) -> str:
 def video_from_site(site: Site, identifier: str, canonical: bool = True) -> Union[Video, None]:
     logging.info(f"Fetching video from {site.value}")
     logging.debug(f"Video identifier: {identifier}")
-    v = info_func[site](identifier)
+    try:
+        v = info_func[site](identifier)
+    except Exception as e:
+        logging.warning("Failed to fetch info from " + site.value)
+        logging.debug("Detailed exception info: ", exc_info=e)
+        return None
     if not v:
         return None
     v.canonical = canonical
