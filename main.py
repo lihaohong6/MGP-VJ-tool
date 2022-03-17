@@ -12,10 +12,10 @@ from typing import Union, List
 from config import data
 from config.config import load_config, get_config
 from models.creators import Person, person_list_to_str, Staff, role_priority
-from models.song import Song
-from models.video import Site, video_from_site, Video, view_count_from_site
-from utils.helpers import prompt_choices, prompt_response, only_canonical_videos, get_video, \
-    prompt_multiline
+from models.song import Song, get_manual_lyrics
+from models.video import Site, video_from_site, Video, view_count_from_site, get_video, only_canonical_videos
+from utils import login
+from utils.helpers import prompt_choices, prompt_response, prompt_multiline
 from utils.image import write_to_file
 from utils.mgp import get_producer_info
 from utils.name_converter import name_to_cat, name_to_chinese
@@ -173,16 +173,6 @@ def create_end(song: Song):
 [[分类:使用VOCALOID的歌曲]]\n""" + vocalist_cat + producer_cats)
 
 
-def get_video_bilibili() -> Union[Video, None]:
-    bv = prompt_response("Bilibili link?")
-    if bv.isspace() or len(bv) == 0:
-        return None
-    if bv:
-        bv_canonical = prompt_choices("BV canonical?", ["Yes", "No"])
-        bv_canonical = bv_canonical == 1
-        return video_from_site(Site.BILIBILI, bv, bv_canonical)
-
-
 def setup_logger():
     logging.basicConfig(filename="logs.txt", level=logging.DEBUG,
                         format='%(name)s :: %(asctime)s :: %(levelname)-8s :: %(message)s',
@@ -216,6 +206,8 @@ def create_uploader_note(song: Song) -> str:
 def main():
     setup_logger()
     load_config("config.yaml")
+    if get_config().image.auto_upload:
+        login.main()
     Path("./output").mkdir(exist_ok=True)
     data.name_japanese = prompt_response("Japanese name?")
     name_chinese = prompt_response("Chinese name?")
@@ -224,9 +216,6 @@ def main():
     song = get_song_by_name(data.name_japanese, name_chinese)
     if not song:
         raise NotImplementedError("No source of information exists besides VOCADB.")
-    video_bilibili = get_video_bilibili()
-    if video_bilibili:
-        song.videos.append(video_bilibili)
     for job, name in song.lyrics_chs.staff:
         if job == "翻譯" or job == "翻译":
             song.lyrics_chs.translator = name

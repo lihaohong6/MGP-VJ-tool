@@ -139,8 +139,8 @@ def download_first(videos: List[Video], target: Path) -> Optional[Tuple[Path, st
 def download_thumbnail(videos: List[Video], filename: str) -> Optional[Tuple[Path, str]]:
     weight = {
         Site.YOUTUBE: 0,
-        Site.NICO_NICO: 1,
-        Site.BILIBILI: 2,
+        Site.BILIBILI: 1,
+        Site.NICO_NICO: 2,
     }
     videos = sorted(videos, key=lambda vid: weight[vid.site])
     target = Path(Path("./output"), Path(filename))

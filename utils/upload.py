@@ -20,8 +20,8 @@ def upload_image(file: Path, filename: str, song_name: str,
     bot = UploadRobot(str(file.absolute()),
                       description=description, use_filename=filename,
                       keep_filename=True,
-                      verify_description=True, aborts=True,
+                      verify_description=False, aborts=True,
                       ignore_warning=False, chunk_size=0,
                       asynchronous=False,
-                      summary="由[[zhwiki:User:Lihaohong/VJ条目辅助工具|VJ条目辅助工具]]自动上传")
+                      summary="由[[User:Lihaohong/VJ条目辅助工具|VJ条目辅助工具]]自动上传")
     bot.run()

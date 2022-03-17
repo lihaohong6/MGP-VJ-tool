@@ -2,11 +2,12 @@ import json
 import logging
 from datetime import datetime
 from enum import Enum
-from typing import Union
+from typing import Union, List
 
 import requests
 from bs4 import BeautifulSoup
 
+from utils.helpers import prompt_response, prompt_choices
 from utils.string import split_number
 
 
@@ -159,3 +160,24 @@ def str_to_date(date: str) -> datetime:
     month = int(date[1])
     day = int(date[2])
     return datetime(year=year, month=month, day=day)
+
+
+def get_video_bilibili() -> Union[Video, None]:
+    bv = prompt_response("Bilibili link?")
+    if bv.isspace() or len(bv) == 0:
+        return None
+    if bv:
+        bv_canonical = prompt_choices("BV canonical?", ["Yes", "No"])
+        bv_canonical = bv_canonical == 1
+        return video_from_site(Site.BILIBILI, bv, bv_canonical)
+
+
+def get_video(videos: List[Video], site: Site):
+    for v in videos:
+        if v.site == site:
+            return v
+    return None
+
+
+def only_canonical_videos(videos: List[Video]) -> List[Video]:
+    return [v for v in videos if v.canonical]

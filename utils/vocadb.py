@@ -10,12 +10,12 @@ import utils.string
 from config import config
 from config.config import get_config
 from models.color import Color, text_color, ColorScheme
-from models.song import Song, Image
+from models.song import Song, Image, get_manual_lyrics
 from models.creators import Person, Creators, role_transform
-from models.video import Video, Site, video_from_site
+from models.video import Video, Site, video_from_site, get_video_bilibili
 from utils import string, japanese
 from utils.at_wiki import get_chinese_lyrics, get_japanese_lyrics
-from utils.helpers import prompt_choices, get_manual_lyrics
+from utils.helpers import prompt_choices
 from utils.image import download_thumbnail, pick_color
 from utils.string import split, is_empty
 from utils.name_converter import name_shorten
@@ -141,6 +141,9 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
         if choice == 1:
             lyrics_chs = get_manual_lyrics()
     videos = parse_videos(response['pvs'])
+    video_bilibili = get_video_bilibili()
+    if video_bilibili:
+        videos.append(video_bilibili)
     albums = parse_albums(response['albums'])
     cover_name = f"{name_chs}封面.jpg"
     image_path, image_url = download_thumbnail(videos, cover_name)
