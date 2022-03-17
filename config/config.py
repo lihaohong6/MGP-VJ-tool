@@ -26,9 +26,10 @@ class ColorConfig(yaml.YAMLObject):
 @dataclass
 class ImageConfig(yaml.YAMLObject):
     yaml_tag = u'!ImageConfig'
-    download_all: bool = True
+    download_all: bool = False
     crop: bool = True
     crop_threshold: int = 20
+    auto_upload: bool = False
 
 
 @dataclass

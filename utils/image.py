@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
-from typing import Union, List
+from typing import Union, List, Tuple, Optional
 
 import cv2
 import requests
@@ -115,26 +115,28 @@ def download_image(url: str, site: Site, index: int) -> Union[Path, None]:
         return None
 
 
-def download_all(videos: List[Video], stop_after_success: bool) -> List[Path]:
+def download_all(videos: List[Video], stop_after_success: bool) -> List[Tuple[Path, str]]:
     candidates = []
     for index, v in enumerate(videos):
         if v.thumb_url:
             image = download_image(v.thumb_url, v.site, index)
             if image:
+                result = (image, v.url)
                 if stop_after_success:
-                    return [image]
-                candidates.append(image)
+                    return [result]
+                candidates.append(result)
     return candidates
 
 
-def download_first(videos: List[Video], target: Path) -> Union[Path, None]:
+def download_first(videos: List[Video], target: Path) -> Optional[Tuple[Path, str]]:
     result = download_all(videos, stop_after_success=True)
     if len(result) == 0:
         return None
-    return result[0].rename(target)
+    result[0][0].rename(target)
+    return target, result[0][1]
 
 
-def download_thumbnail(videos: List[Video], filename: str) -> Union[Path, None]:
+def download_thumbnail(videos: List[Video], filename: str) -> Optional[Tuple[Path, str]]:
     weight = {
         Site.YOUTUBE: 0,
         Site.NICO_NICO: 1,
@@ -148,6 +150,8 @@ def download_thumbnail(videos: List[Video], filename: str) -> Union[Path, None]:
     if len(candidates) == 0:
         return None
     elif len(candidates) == 1:
-        return candidates[0].rename(target)
-    candidates = sorted([(c, image_size(str(c))) for c in candidates], key=lambda c: c[1])
-    return candidates[-1][0].rename(target)
+        candidates[0][0].rename(target)
+        return target, candidates[0][1]
+    candidates = sorted([(c, image_size(str(c[0]))) for c in candidates], key=lambda c: c[1])
+    candidates[-1][0][0].rename(target)
+    return target, candidates[-1][0][1]

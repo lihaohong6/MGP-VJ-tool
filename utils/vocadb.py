@@ -1,23 +1,27 @@
 import json
 import logging
 import urllib
-from typing import Union, List, Dict
+from pathlib import Path
+from typing import Union, List, Dict, Optional
 
 import requests
 
 import utils.string
 from config import config
 from config.config import get_config
-from models.song import Song
+from models.color import Color, text_color, ColorScheme
+from models.song import Song, Image
 from models.creators import Person, Creators, role_transform
 from models.video import Video, Site, video_from_site
 from utils import string, japanese
 from utils.at_wiki import get_chinese_lyrics, get_japanese_lyrics
 from utils.helpers import prompt_choices, get_manual_lyrics
+from utils.image import download_thumbnail, pick_color
 from utils.string import split, is_empty
 from utils.name_converter import name_shorten
 
 # songType = Original? do not specify?
+from utils.upload import upload_image
 
 VOCADB_NARROW = "vocadb.net/api/songs?start=0&getTotalCount=true&maxResults=100" \
                 "&query={}&fields=AdditionalNames%2CThumbUrl&lang=Default&nameMatchMode=Auto" \
@@ -100,7 +104,16 @@ def parse_albums(albums: list) -> List[str]:
     return [a['defaultName'] for a in albums]
 
 
-def get_song_by_name(song_name: str) -> Union[Song, None]:
+def get_color(image_path: Path) -> Optional[ColorScheme]:
+    if image_path and get_config().color.color_from_image:
+        color: Color = pick_color(str(image_path))
+        text = text_color(color)
+        colors = ColorScheme(text=text, background=color)
+        return colors
+    return None
+
+
+def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
     song_id = search_song_id(song_name)
     if not song_id:
         return None
@@ -129,7 +142,12 @@ def get_song_by_name(song_name: str) -> Union[Song, None]:
             lyrics_chs = get_manual_lyrics()
     videos = parse_videos(response['pvs'])
     albums = parse_albums(response['albums'])
-    return Song(name_ja, "", name_other, creators, lyrics_ja, lyrics_chs, videos, albums)
+    cover_name = f"{name_chs}封面.jpg"
+    image_path, image_url = download_thumbnail(videos, cover_name)
+    colors = get_color(image_path)
+    illustrators = creators.staffs.get("曲绘", None)
+    image: Image = Image(image_path, cover_name, image_url, illustrators)
+    return Song(name_ja, name_chs, name_other, creators, lyrics_ja, lyrics_chs, image, videos, albums, colors)
 
 
 def get_lyrics(lyrics_id: str) -> str:

@@ -15,5 +15,5 @@ dist: main.py
 	pyinstaller -F main.py
 
 clean:
-	rm -rf output dist build
-	rm -f logs.txt macOS.zip Windows10.zip
+	rm -rf output dist build apicache-py3
+	rm -f logs.txt macOS.zip Windows10.zip pywikibot.lwp throttle.ctrl

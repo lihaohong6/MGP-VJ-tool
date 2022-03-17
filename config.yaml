@@ -13,7 +13,7 @@ wikitext: !WikitextConfig
   uploader_note: false
 color: !ColorConfig
   # 让用户从图片选择背景颜色
-  color_from_image: false
+  color_from_image: true
   # 如果指定了背景颜色，但是文字颜色没有指定，亮度（0-100）高达多少会使用黑色文字？
   fg_color_threshold: 60
   # 打开森雨亮瞎眼模式；功能未知；副作用未知
@@ -25,3 +25,5 @@ image: !ImageConfig
   crop: true
   # 剪裁判断值，数字越高剪裁力度越大。建议设为0-50避免误伤封面。
   crop_threshold: 20
+  # 自动上传图片至萌娘共享
+  auto_upload: true

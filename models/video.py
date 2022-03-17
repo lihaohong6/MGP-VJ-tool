@@ -61,8 +61,8 @@ def get_nc_info(vid: str) -> Video:
     soup = BeautifulSoup(result, "html.parser")
     date = datetime.fromtimestamp(0)
     views = 0
-    for s in soup.find_all('script'):
-        t: str = s.get_text()
+    for script in soup.find_all('script'):
+        t: str = script.get_text()
         index_start = t.find("uploadDate")
         if index_start != -1:
             index_start += len("uploadDate") + 3

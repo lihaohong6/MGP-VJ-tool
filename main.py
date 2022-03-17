@@ -11,16 +11,16 @@ from typing import Union, List
 
 from config import data
 from config.config import load_config, get_config
-from models.color import Color, text_color, ColorScheme
 from models.creators import Person, person_list_to_str, Staff, role_priority
 from models.song import Song
 from models.video import Site, video_from_site, Video, view_count_from_site
 from utils.helpers import prompt_choices, prompt_response, only_canonical_videos, get_video, \
     prompt_multiline
-from utils.image import write_to_file, download_thumbnail, pick_color
-from utils.mgp import get_producer_templates, get_producer_cats, get_producer_info
+from utils.image import write_to_file
+from utils.mgp import get_producer_info
 from utils.name_converter import name_to_cat, name_to_chinese
 from utils.string import auto_lj, is_empty, datetime_to_ymd, assert_str_exists, join_string
+from utils.upload import upload_image
 from utils.vocadb import get_song_by_name
 
 
@@ -43,10 +43,6 @@ def videos_to_str(videos: List[Video]) -> List[str]:
     return result
 
 
-def get_people_by_job(staffs: dict, job: str) -> Union[List[Person], None]:
-    return staffs.get(job, None)
-
-
 def create_header(song: Song) -> str:
     videos = sorted(song.videos, key=lambda v: v.uploaded)
     nico = get_video(videos, Site.NICO_NICO)
@@ -65,7 +61,7 @@ def create_header(song: Song) -> str:
     }
     video_id = "".join([f"|{sites.get(s)} = {get_video(videos, s).identifier}\n"
                         for s in sites.keys() if get_video(videos, s) and get_video(videos, s).canonical])
-    illustrator = get_people_by_job(song.creators.staffs, "曲绘")
+    illustrator: List[Person] = song.image.creators
     image_info = ""
     if illustrator:
         # FIXME: what's a good deliminator for illustrators?
@@ -225,10 +221,9 @@ def main():
     name_chinese = prompt_response("Chinese name?")
     if is_empty(name_chinese):
         name_chinese = data.name_japanese
-    song = get_song_by_name(data.name_japanese)
+    song = get_song_by_name(data.name_japanese, name_chinese)
     if not song:
         raise NotImplementedError("No source of information exists besides VOCADB.")
-    song.name_chs = name_chinese
     video_bilibili = get_video_bilibili()
     if video_bilibili:
         song.videos.append(video_bilibili)
@@ -236,12 +231,6 @@ def main():
         if job == "翻譯" or job == "翻译":
             song.lyrics_chs.translator = name
             break
-    cover_name = f"{song.name_chs}封面.jpeg"
-    thumbnail = download_thumbnail(song.videos, cover_name)
-    if thumbnail:
-        color: Color = pick_color(str(thumbnail))
-        text = text_color(color)
-        song.colors = ColorScheme(text=text, background=color)
     header = create_header(song)
     uploader_note = create_uploader_note(song)
     intro = create_intro(song)
@@ -250,6 +239,12 @@ def main():
     end = create_end(song)
     write_to_file("\n".join([header, uploader_note, intro, song_body, lyrics, end]),
                   f"{song.name_chs}.wikitext")
+    if song.image.path and get_config().image.auto_upload:
+        response = prompt_choices("Upload image to commons?", ["Yes", "No"])
+        if response == 1:
+            image = song.image
+            upload_image(image.path, filename=image.file_name, song_name=name_chinese,
+                         authors=image.creators, source_url=image.source_url)
     print("Program ended. Go to output folder for result.")
 
 
