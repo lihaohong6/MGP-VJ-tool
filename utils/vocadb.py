@@ -134,7 +134,7 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
         lyrics_ja = string.process_lyrics_jap(lyrics_ja)
     if get_config().wikitext.furigana_local:
         lyrics_ja = japanese.furigana_local(lyrics_ja)
-    lyrics_chs = get_chinese_lyrics(song_name)
+    lyrics_chs = get_chinese_lyrics(song_name, creators.producers[0].name if len(creators.producers) > 0 else "")
     if not lyrics_chs.lyrics:
         choice = prompt_choices("Supply Chinese translation manually?",
                                 ["Sure.", "No translation exists."])

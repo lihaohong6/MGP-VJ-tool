@@ -19,6 +19,7 @@ from utils.helpers import prompt_choices, prompt_response, prompt_multiline
 from utils.image import write_to_file
 from utils.mgp import get_producer_info
 from utils.name_converter import name_to_cat, name_to_chinese
+from utils.save_input import setup_save_input
 from utils.string import auto_lj, is_empty, datetime_to_ymd, assert_str_exists, join_string
 from utils.upload import upload_image
 from utils.vocadb import get_song_by_name
@@ -206,6 +207,7 @@ def create_uploader_note(song: Song) -> str:
 def main():
     setup_logger()
     load_config("config.yaml")
+    setup_save_input(get_config().save_to_file)
     if get_config().image.auto_upload:
         login.main()
     Path("./output").mkdir(exist_ok=True)

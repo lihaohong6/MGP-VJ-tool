@@ -1,14 +1,21 @@
 import math
 from typing import Union, Callable, List
 
+from utils.save_input import save_input
 from utils.string import is_empty
+
+
+def get_input() -> str:
+    s = input()
+    save_input(s)
+    return s
 
 
 def prompt_response(prompt: str, auto_strip: bool = True,
                     validity_checker: Callable[[str], bool] = lambda x: True) -> str:
     print(prompt)
     while True:
-        s = input()
+        s = get_input()
         if auto_strip:
             s = s.strip()
         if validity_checker(s):
@@ -52,7 +59,7 @@ def prompt_multiline(prompt: str, terminator: Union[Callable[[str], bool], str] 
     print(prompt)
     res = []
     while True:
-        s = input()
+        s = get_input()
         if terminator(s):
             return res
         if auto_strip:

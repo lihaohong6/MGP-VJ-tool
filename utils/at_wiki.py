@@ -109,9 +109,9 @@ def get_japanese_lyrics(name: str) -> str:
     return get_at_wiki_body(name, url_jap, "Japanese").lyrics
 
 
-def get_chinese_lyrics(name: str) -> Lyrics:
+def get_chinese_lyrics(name: str, producer: str = "") -> Lyrics:
     logging.info("Trying to fetch Chinese lyrics from atwiki.")
-    url_chs = f"https://w.atwiki.jp/vocaloidchly/search?andor=and&keyword={name}"
+    url_chs = f"https://w.atwiki.jp/vocaloidchly/search?andor=and&keyword={name + ' ' + producer}"
     return get_at_wiki_body(name, url_chs, "Chinese")
 
 
