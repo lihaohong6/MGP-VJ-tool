@@ -146,10 +146,10 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
         videos.append(video_bilibili)
     albums = parse_albums(response['albums'])
     cover_name = f"{name_chs}封面.jpg"
-    image_path, image_url = download_thumbnail(videos, cover_name)
+    image_path, video = download_thumbnail(videos, cover_name)
     colors = get_color(image_path)
     illustrators = creators.staffs.get("曲绘", None)
-    image: Image = Image(image_path, cover_name, image_url, illustrators)
+    image: Image = Image(image_path, cover_name, video.url, illustrators)
     return Song(name_ja, name_chs, name_other, creators, lyrics_ja, lyrics_chs, image, videos, albums, colors)
 
 

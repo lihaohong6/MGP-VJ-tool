@@ -8,6 +8,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from models.creators import Person
+from utils.string import is_empty
 
 BASE_TEMPLATE = "https://zh.moegirl.org.cn/api.php?action=parse&format=json" \
                 "&page=Template:{}&prop=categories"
@@ -52,6 +53,7 @@ async def producer_checker(producers: List[Person], task):
     result = []
     for producer in producers:
         names = [producer.name, *producer.name_eng]
+        names = [name for name in names if not is_empty(name)]
         names.extend([name[:-1] for name in names if name[-1] == 'P'])
         result.append(asyncio.create_task(task(names)))
     result = [await r for r in result]

@@ -12,7 +12,7 @@ def upload_image(file: Path, filename: str, song_name: str,
     description = (
             "{{Template:Copyright}}\n" +
             "歌曲《" + song_name + "》的封面。\n\n" +
-            (f"原地址:{source_url}\n" if source_url else "") +
+            (f"源地址:{source_url}\n" if source_url else "") +
             (''.join([f"[[分类:作者:{author.name}]]\n" for author in authors]) if authors else "") +
             "[[Category:视频封面]]\n"
     )

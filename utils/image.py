@@ -116,20 +116,20 @@ def download_image(url: str, site: Site, index: int) -> Union[Path, None]:
         return None
 
 
-def download_all(videos: List[Video], stop_after_success: bool) -> List[Tuple[Path, str]]:
+def download_all(videos: List[Video], stop_after_success: bool) -> List[Tuple[Path, Video]]:
     candidates = []
     for index, v in enumerate(videos):
         if v.thumb_url:
             image = download_image(v.thumb_url, v.site, index)
             if image:
-                result = (image, v.url)
+                result = (image, v)
                 if stop_after_success:
                     return [result]
                 candidates.append(result)
     return candidates
 
 
-def download_first(videos: List[Video], target: Path) -> Optional[Tuple[Path, str]]:
+def download_first(videos: List[Video], target: Path) -> Optional[Tuple[Path, Video]]:
     result = download_all(videos, stop_after_success=True)
     if len(result) == 0:
         return None
@@ -137,7 +137,7 @@ def download_first(videos: List[Video], target: Path) -> Optional[Tuple[Path, st
     return target, result[0][1]
 
 
-def download_thumbnail(videos: List[Video], filename: str) -> Optional[Tuple[Path, str]]:
+def download_thumbnail(videos: List[Video], filename: str) -> Optional[Tuple[Path, Video]]:
     weight = {
         Site.YOUTUBE: 0,
         Site.BILIBILI: 1,
