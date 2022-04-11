@@ -1,3 +1,4 @@
+import argparse
 import logging
 from dataclasses import dataclass
 from functools import reduce
@@ -33,10 +34,10 @@ def bigger_rect(r1, r2):
     return r1 if size1 >= size2 else r2
 
 
-def remove_black_boarders(image_in: str, image_out: str):
+def remove_black_boarders(image_in: str, image_out: str, crop_threshold: int):
     img = cv2.imread(image_in)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, get_config().image.crop_threshold, 255, cv2.THRESH_BINARY)
+    _, thresh = cv2.threshold(gray, crop_threshold, 255, cv2.THRESH_BINARY)
     contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     x, y, w, h = reduce(
         bigger_rect,
@@ -105,7 +106,7 @@ def download_image(url: str, site: Site, index: int) -> Union[Path, None]:
         download_file(url, temp_dir)
         image_name = Path(f"./output/temp{index}.jpeg")
         if get_config().image.crop:
-            remove_black_boarders(str(temp_dir), str(image_name))
+            remove_black_boarders(str(temp_dir), str(image_name), get_config().image.crop_threshold)
         else:
             temp_dir.rename(image_name)
         return image_name
