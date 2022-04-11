@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import urllib
 from typing import Union, List, Tuple
@@ -8,28 +9,29 @@ from bs4 import BeautifulSoup
 
 from models.creators import Person
 
-BASE_TEMPLATE = "https://zh.moegirl.org.cn/Template:{}"
-BASE_CAT = "https://zh.moegirl.org.cn/Category:{}作品"
+BASE_TEMPLATE = "https://zh.moegirl.org.cn/api.php?action=parse&format=json" \
+                "&page=Template:{}&prop=categories"
+BASE_CAT = "https://zh.moegirl.org.cn/api.php?action=parse&format=json" \
+           "&page=Category:{}作品"
 
 
 def producer_template_exists(name: str) -> bool:
     url = BASE_TEMPLATE.format(urllib.parse.quote(name))
-    soup = BeautifulSoup(requests.get(url).text, "html.parser")
-    result = soup.find("div", {"id", "mw-normal-catlinks"})
-    if not result:
+    result = json.loads(requests.get(url).text)
+    if 'parse' not in result:
         return False
-    cats = result.find_all("a")
+    cats = result['parse']['categories']
     for cat in cats:
-        if cat.text == "音乐家模板" or cat.text == "虚拟歌手音乐人模板":
+        cat = cat['*']
+        if cat == "音乐家模板" or cat == "虚拟歌手音乐人模板":
             return True
     return False
 
 
 def producer_cat_exists(name: str) -> bool:
     url = BASE_CAT.format(urllib.parse.quote(name))
-    soup = BeautifulSoup(requests.get(url).text, "html.parser")
-    result = soup.find("div", {"id": "topicpath"})
-    return not not result
+    result = json.loads(requests.get(url).text)
+    return 'parse' in result
 
 
 async def check_template_names(names: List[str]) -> Union[str, None]:
