@@ -44,7 +44,7 @@ def furigana_local(lyrics: str) -> str:
             furigana = line[index + 1:close_index]
             if close_index == -1 or index + 1 == close_index or \
                     not functools.reduce(lambda a, b: a and b,
-                                         [is_hiragana(c) for c in furigana]):
+                                         [is_kana(c) for c in furigana]):
                 continue
             kanji_start = index - 1
             while kanji_start >= 0 and is_kanji(line[kanji_start]):
