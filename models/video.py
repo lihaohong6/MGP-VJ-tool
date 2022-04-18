@@ -133,7 +133,7 @@ def view_count_from_site(video: Video) -> str:
     if video.site == Site.NICO_NICO:
         return f"{{{{NiconicoCount|id={video.identifier}}}}}"
     if video.site == Site.YOUTUBE:
-        return f"{{{{YoutubeCount|id={video.identifier}|fallback={video.views}}}}}"
+        return f"{{{{YoutubeCount|id={video.identifier}}}}}"
     if video.site == Site.BILIBILI:
         return f"{{{{BilibiliCount|id={video.identifier}}}}}"
     return "ERROR"

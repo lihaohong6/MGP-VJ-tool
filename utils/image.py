@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Union, List, Tuple, Optional
 
 import cv2
+import numpy as np
 import requests
 
 from config.config import get_config
@@ -34,16 +35,24 @@ def bigger_rect(r1, r2):
     return r1 if size1 >= size2 else r2
 
 
-def remove_black_boarders(image_in: str, image_out: str, crop_threshold: int):
+def remove_black_boarders(image_in: str, image_out: str, crop_threshold: float):
     img = cv2.imread(image_in)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, crop_threshold, 255, cv2.THRESH_BINARY)
-    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    x, y, w, h = reduce(
-        bigger_rect,
-        [cv2.boundingRect(cnt)
-         for cnt in contours])
-    crop = img[y:y + h, x:x + w]
+
+    # use np to sum rows until row sum exceeds a threshold
+    # no column support for now
+    def get_row_num(start: int, step: int) -> int:
+        index = start
+        while 0 <= index < len(gray):
+            s = np.sum(gray[index])
+            average = s / len(gray[index])
+            if average > crop_threshold:
+                return index
+            index += step
+
+    y1, y2 = get_row_num(0, 1), get_row_num(len(gray) - 1, -1)
+    x1, x2 = 0, len(gray[0])
+    crop = img[y1:y2, x1:x2]
     cv2.imwrite(image_out, crop)
 
 
