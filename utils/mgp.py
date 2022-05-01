@@ -10,9 +10,9 @@ from bs4 import BeautifulSoup
 from models.creators import Person
 from utils.string import is_empty
 
-BASE_TEMPLATE = "https://zh.moegirl.org.cn/api.php?action=parse&format=json" \
+BASE_TEMPLATE = "https://mzh.moegirl.org.cn/api.php?action=parse&format=json" \
                 "&page=Template:{}&prop=categories"
-BASE_CAT = "https://zh.moegirl.org.cn/api.php?action=parse&format=json" \
+BASE_CAT = "https://mzh.moegirl.org.cn/api.php?action=parse&format=json" \
            "&page=Category:{}作品"
 
 
@@ -72,6 +72,10 @@ async def get_producer_cats(producers: List[Person]) -> List[str]:
 
 
 async def get_producer_info(producers: List[Person]) -> Tuple[List[str], List[str]]:
-    task1 = asyncio.create_task(get_producer_templates(producers))
-    task2 = asyncio.create_task(get_producer_cats(producers))
-    return await task1, await task2
+    try:
+        task1 = asyncio.create_task(get_producer_templates(producers))
+        task2 = asyncio.create_task(get_producer_cats(producers))
+        return await task1, await task2
+    except Exception as e:
+        logging.warning("Error occurred while trying to fetch MGP templates and cats. Continuing...", exc_info=e)
+        return [], []

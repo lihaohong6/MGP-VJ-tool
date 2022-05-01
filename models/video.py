@@ -74,7 +74,7 @@ def get_nc_info(vid: str) -> Video:
             index_start += len("userInteractionCount") + 2
             index_end = t.find("}", index_start)
             views = int(t[index_start:index_end])
-    thumb = soup.find("meta", {"name": "twitter:image"})['content']
+    thumb = soup.find("meta", {"name": "thumbnail"})['content']
     return Video(Site.NICO_NICO, vid, url, views, date, thumb)
 
 
