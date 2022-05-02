@@ -105,11 +105,14 @@ def parse_albums(albums: list) -> List[str]:
 
 
 def get_color(image_path: Path) -> Optional[ColorScheme]:
-    if image_path and get_config().color.color_from_image:
-        color: Color = pick_color(str(image_path))
-        text = text_color(color)
-        colors = ColorScheme(text=text, background=color)
-        return colors
+    try:
+        if image_path and get_config().color.color_from_image:
+            color: Color = pick_color(str(image_path))
+            text = text_color(color)
+            colors = ColorScheme(text=text, background=color)
+            return colors
+    except Exception as e:
+        logging.error("Can't get color from image", exc_info=e)
     return None
 
 
