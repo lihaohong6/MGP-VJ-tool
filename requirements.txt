@@ -8,6 +8,4 @@ urllib3==1.26.8
 opencv-python~=4.5.5.64
 numpy~=1.22.3
 PyYAML~=6.0
-pywikibot==7.1.0
-wikitextparser==0.49.1
-
+pyinstaller

@@ -1,8 +1,21 @@
 import logging
+import os
+import sys
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Union
 
 import yaml
 from yaml import Loader
+
+if getattr(sys, 'frozen', False):
+    # The user can edit some files, so can't use _MEIPASS
+    application_path = Path(os.path.dirname(sys.executable))
+else:
+    application_path = Path(os.path.dirname(os.path.abspath(__file__)))
+    application_path = application_path.joinpath("..")
+# os.environ['PYWIKIBOT_DIR'] = str(application_path.absolute())
+output_path: Path = application_path.joinpath("output")
 
 
 @dataclass
@@ -44,7 +57,7 @@ class Config(yaml.YAMLObject):
 config_xxx = Config()
 
 
-def load_config(filename: str):
+def load_config(filename: Union[str, Path]):
     global config_xxx
     try:
         with open(filename, mode="r", encoding="UTF-8") as f:

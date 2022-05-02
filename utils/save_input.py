@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Optional
 from typing.io import IO
 
+from config.config import output_path
 from utils.string import is_empty
 
 save_file: Optional[IO] = None
@@ -13,7 +14,7 @@ def setup_save_input(file_prefix: Optional[str]):
         return
     counter = 1
     while True:
-        save_file_path = Path(file_prefix + str(counter) + ".txt")
+        save_file_path = output_path.joinpath(file_prefix + str(counter) + ".txt")
         if not save_file_path.exists():
             save_file = open(save_file_path, "w")
             return

@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 import requests
 
-from config.config import get_config
+from config.config import get_config, output_path
 from models.color import Color
 from models.video import Video, Site
 
@@ -23,8 +23,8 @@ def download_file(url: str, target: Union[str, Path]) -> bool:
     return True
 
 
-def write_to_file(output: str, filename: str):
-    f = open(f"./output/{filename}", "w", encoding="UTF-8")
+def write_to_file(output: str, filename: Union[str, Path]):
+    f = open(filename, "w", encoding="UTF-8")
     f.write(output)
     f.close()
 
@@ -110,10 +110,10 @@ def pick_color(image: str) -> Color:
 
 def download_image(url: str, site: Site, index: int) -> Union[Path, None]:
     try:
-        temp_dir = Path("./output/temp.jpeg")
+        temp_dir = output_path.joinpath("temp.jpeg")
         logging.info("Downloading cover from " + site.value + " with url " + url)
         download_file(url, temp_dir)
-        image_name = Path(f"./output/temp{index}.jpeg")
+        image_name = output_path.joinpath(f"temp{index}.jpeg")
         if get_config().image.crop:
             remove_black_boarders(str(temp_dir), str(image_name), get_config().image.crop_threshold)
         else:
@@ -153,7 +153,7 @@ def download_thumbnail(videos: List[Video], filename: str) -> Optional[Tuple[Pat
         Site.NICO_NICO: 2,
     }
     videos = sorted(videos, key=lambda vid: weight[vid.site])
-    target = Path(Path("./output"), Path(filename))
+    target = output_path.joinpath(filename)
     if not get_config().image.download_all:
         return download_first(videos, target)
     candidates = download_all(videos, stop_after_success=False)

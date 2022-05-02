@@ -4,16 +4,17 @@
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import asyncio
 import logging
+import os
 import sys
 import traceback
-from pathlib import Path
-from typing import Union, List
+import webbrowser
+from typing import List
 
 from config import data
-from config.config import load_config, get_config
+from config.config import load_config, get_config, application_path, output_path
 from models.creators import Person, person_list_to_str, Staff, role_priority
-from models.song import Song, get_manual_lyrics
-from models.video import Site, video_from_site, Video, view_count_from_site, get_video, only_canonical_videos
+from models.song import Song
+from models.video import Site, Video, view_count_from_site, get_video, only_canonical_videos
 from utils import login
 from utils.helpers import prompt_choices, prompt_response, prompt_multiline
 from utils.image import write_to_file
@@ -206,11 +207,11 @@ def create_uploader_note(song: Song) -> str:
 
 def main():
     setup_logger()
-    load_config("config.yaml")
+    load_config(application_path.joinpath("config.yaml"))
     setup_save_input(get_config().save_to_file)
     if get_config().image.auto_upload:
         login.main()
-    Path("./output").mkdir(exist_ok=True)
+    output_path.mkdir(exist_ok=True)
     data.name_japanese = prompt_response("Japanese name?")
     name_chinese = prompt_response("Chinese name?")
     if is_empty(name_chinese):
@@ -228,8 +229,9 @@ def main():
     song_body = create_song(song)
     lyrics = create_lyrics(song)
     end = create_end(song)
+    wikitext_dir = output_path.joinpath(f"{song.name_chs}.wikitext")
     write_to_file("\n".join([header, uploader_note, intro, song_body, lyrics, end]),
-                  f"{song.name_chs}.wikitext")
+                  wikitext_dir)
     if song.image.path and get_config().image.auto_upload:
         response = prompt_choices("Upload image to commons?", ["Yes", "No"])
         if response == 1:
@@ -237,13 +239,13 @@ def main():
             upload_image(image.path, filename=image.file_name, song_name=name_chinese,
                          authors=image.creators, source_url=image.source_url)
     print("Program ended. Go to output folder for result.")
+    webbrowser.open("file://" + str(wikitext_dir.absolute()))
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     try:
         main()
-        exit(0)
     except NotImplementedError as e:
         logging.error("NotImplementedError")
         logging.error(str(e))
