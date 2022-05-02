@@ -117,6 +117,7 @@ def download_image(url: str, site: Site, index: int) -> Union[Path, None]:
         if get_config().image.crop:
             remove_black_boarders(str(temp_dir), str(image_name), get_config().image.crop_threshold)
         else:
+            image_name.unlink(missing_ok=True)
             temp_dir.rename(image_name)
         return image_name
     except Exception as e:
@@ -142,8 +143,8 @@ def download_first(videos: List[Video], target: Path) -> Optional[Tuple[Path, Vi
     result = download_all(videos, stop_after_success=True)
     if len(result) == 0:
         return None
-    result[0][0].rename(target)
-    return target, result[0][1]
+    target.unlink(missing_ok=True)
+    return result[0][0].rename(target), result[0][1]
 
 
 def download_thumbnail(videos: List[Video], filename: str) -> Optional[Tuple[Path, Video]]:
@@ -157,11 +158,10 @@ def download_thumbnail(videos: List[Video], filename: str) -> Optional[Tuple[Pat
     if not get_config().image.download_all:
         return download_first(videos, target)
     candidates = download_all(videos, stop_after_success=False)
+    target.unlink(missing_ok=True)
     if len(candidates) == 0:
         return None
     elif len(candidates) == 1:
-        candidates[0][0].rename(target)
-        return target, candidates[0][1]
+        return candidates[0][0].rename(target), candidates[0][1]
     candidates = sorted([(c, image_size(str(c[0]))) for c in candidates], key=lambda c: c[1])
-    candidates[-1][0][0].rename(target)
-    return target, candidates[-1][0][1]
+    return candidates[-1][0][0].rename(target), candidates[-1][0][1]

@@ -16,7 +16,7 @@ def setup_save_input(file_prefix: Optional[str]):
     while True:
         save_file_path = output_path.joinpath(file_prefix + str(counter) + ".txt")
         if not save_file_path.exists():
-            save_file = open(save_file_path, "w")
+            save_file = open(save_file_path, "w", encoding="utf-8")
             return
         counter += 1
 

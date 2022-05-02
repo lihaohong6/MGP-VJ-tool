@@ -176,13 +176,15 @@ def create_end(song: Song):
 
 
 def setup_logger():
-    logging.basicConfig(filename="logs.txt", level=logging.DEBUG,
-                        format='%(name)s :: %(asctime)s :: %(levelname)-8s :: %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S')
-    logger = logging.getLogger()
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.INFO)
-    logger.addHandler(handler)
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    file_handler = logging.FileHandler('logs.txt', encoding='utf-8')
+    file_handler.setFormatter(logging.Formatter('%(name)s :: %(asctime)s :: %(levelname)-8s :: %(message)s',
+                                                '%Y-%m-%d %H:%M:%S'))
+    root.addHandler(file_handler)
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.INFO)
+    root.addHandler(stdout_handler)
 
 
 def create_uploader_note(song: Song) -> str:
@@ -206,6 +208,7 @@ def create_uploader_note(song: Song) -> str:
 
 
 def main():
+    sys.stdout.reconfigure(encoding='utf-8')
     setup_logger()
     load_config(application_path.joinpath("config.yaml"))
     setup_save_input(get_config().save_to_file)
