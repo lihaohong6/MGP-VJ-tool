@@ -9,8 +9,8 @@ Automatically generates Wikitext for Japanese VOCALOID songs, tailored specifica
 从GitHub下载代码。
 
 确保以下要求被满足：
-* 安装了`Python3.9`或更高（3.9以下的版本可能可以，但是没有测试过），并且`Python`在`path`里。安装程序一般会自动将`Python`加入`path`，所以不用手动添加。
-* 安装程序依赖的库。可以直接运行`install.bat`，也可以手动用`pip` [安装](https://packaging.python.org/en/latest/tutorials/installing-packages/#requirements-files) 。所有的依赖都在`requirements.txt`中。目前只有[requests](https://github.com/psf/requests) 和 [beautifulsoup4](https://www.crummy.com/software/BeautifulSoup/) 
+* 安装了`Python3.8`或更高，并且`Python`在`path`里。安装程序一般会自动将`Python`加入`path`，所以不用手动添加。
+* 安装程序依赖的库。可以直接运行`install.bat`，也可以手动用`pip` [安装](https://packaging.python.org/en/latest/tutorials/installing-packages/#requirements-files) 。所有的依赖都在`requirements.txt`中。
 
 运行`run.bat`（Windows）或`run.sh`（OS X），或者在命令行中输入
 ```shell

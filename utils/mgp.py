@@ -1,11 +1,16 @@
 import asyncio
 import json
 import logging
+import sys
 import urllib
-from typing import Union, List, Tuple
+from asyncio import Future
+from concurrent.futures import as_completed
+from json import JSONDecodeError
+from typing import Union, List, Tuple, Callable
 
 import requests
 from bs4 import BeautifulSoup
+from requests_futures.sessions import FuturesSession
 
 from models.creators import Person
 from utils.string import is_empty
@@ -16,9 +21,8 @@ BASE_CAT = "https://mzh.moegirl.org.cn/api.php?action=parse&format=json" \
            "&page=Category:{}作品"
 
 
-def producer_template_exists(name: str) -> bool:
-    url = BASE_TEMPLATE.format(urllib.parse.quote(name))
-    result = json.loads(requests.get(url).text)
+def producer_template_exists(response: str) -> bool:
+    result = json.loads(response)
     if 'parse' not in result:
         return False
     cats = result['parse']['categories']
@@ -29,46 +33,44 @@ def producer_template_exists(name: str) -> bool:
     return False
 
 
-def producer_cat_exists(name: str) -> bool:
-    url = BASE_CAT.format(urllib.parse.quote(name))
-    result = json.loads(requests.get(url).text)
+def producer_cat_exists(response: str) -> bool:
+    result = json.loads(response)
     return 'parse' in result
 
 
-async def check_template_names(names: List[str]) -> Union[str, None]:
-    for name in names:
-        if producer_template_exists(name):
-            return name
-    return None
+def expand_name(producer) -> List[str]:
+    names = [producer.name, *producer.name_eng]
+    names = [name for name in names if not is_empty(name)]
+    names.extend([name[:-1] for name in names if len(name) > 0 and name[-1] == 'P'])
+    return names
 
 
-async def check_cat_names(names: List[str]) -> Union[str, None]:
-    for name in names:
-        if producer_cat_exists(name):
-            return name
-    return None
-
-
-async def producer_checker(producers: List[Person], task):
-    result = []
-    for producer in producers:
-        names = [producer.name, *producer.name_eng]
-        names = [name for name in names if not is_empty(name)]
-        names.extend([name[:-1] for name in names if name[-1] == 'P'])
-        result.append(asyncio.create_task(task(names)))
-    result = [await r for r in result]
-    result = [r for r in result if r]
-    return result
+async def producer_checker(producers: List[Person], base_url: str, predicate: Callable[[str], bool]):
+    try:
+        with FuturesSession() as session:
+            futures: List[Future] = []
+            for p in producers:
+                names = expand_name(p)
+                for name in names:
+                    url = base_url.format(urllib.parse.quote(name))
+                    futures.append(session.get(url))
+                    futures[-1].producer_name = name
+            return [response.producer_name for response in as_completed(futures)
+                    if not response.exception() and predicate(response.result().text)]
+    except Exception as e:
+        session.close()
+        logging.error("Error occurred.", exc_info=e)
+        return []
 
 
 async def get_producer_templates(producers: List[Person]) -> List[str]:
     logging.info("Fetching producer templates for " + ", ".join([p.name for p in producers]))
-    return await producer_checker(producers, check_template_names)
+    return await producer_checker(producers, BASE_TEMPLATE, producer_template_exists)
 
 
 async def get_producer_cats(producers: List[Person]) -> List[str]:
     logging.info("Fetching producer categories for " + ", ".join([p.name for p in producers]))
-    return await producer_checker(producers, check_cat_names)
+    return await producer_checker(producers, BASE_CAT, producer_cat_exists)
 
 
 async def get_producer_info(producers: List[Person]) -> Tuple[List[str], List[str]]:
