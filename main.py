@@ -161,11 +161,14 @@ def create_lyrics(song: Song):
 
 
 def create_end(song: Song):
-    list_templates, list_cats = asyncio.run(get_producer_info(song.creators.producers))
-    producer_templates = join_string(list_templates, deliminator="",
-                                     outer_wrapper=("{{Template:", "}}\n"))
-    producer_cats = join_string(list_cats, deliminator="",
-                                outer_wrapper=("[[Category:", "作品]]\n"))
+    if get_config().wikitext.producer_template_and_cat:
+        list_templates, list_cats = asyncio.run(get_producer_info(song.creators.producers))
+        producer_templates = join_string(list_templates, deliminator="",
+                                         outer_wrapper=("{{Template:", "}}\n"))
+        producer_cats = join_string(list_cats, deliminator="",
+                                    outer_wrapper=("[[Category:", "作品]]\n"))
+    else:
+        producer_templates, producer_cats = "", ""
     vocalist_cat = join_string(song.creators.vocalists_str(),
                                deliminator="", mapper=name_to_cat,
                                outer_wrapper=('[[分类:', '歌曲]]\n'))

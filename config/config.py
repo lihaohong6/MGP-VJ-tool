@@ -25,7 +25,8 @@ class WikitextConfig(yaml.YAMLObject):
     furigana_local: bool = True
     furigana_all: bool = True
     lyrics_chs_fail_fast: bool = False
-    uploader_note: bool = True
+    uploader_note: bool = False
+    producer_template_and_cat: bool = True
 
 
 @dataclass

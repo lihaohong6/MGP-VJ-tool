@@ -12,6 +12,8 @@ wikitext: !WikitextConfig
   lyrics_chs_fail_fast: false
   # 是否询问投稿文
   uploader_note: false
+  # 是否检测P主模板和分类
+  producer_template_and_cat: true
 color: !ColorConfig
   # 让用户从图片选择背景颜色
   color_from_image: true
