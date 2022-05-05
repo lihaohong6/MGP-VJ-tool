@@ -10,7 +10,7 @@ import utils.string
 from config import config
 from config.config import get_config
 from models.color import Color, text_color, ColorScheme
-from models.song import Song, Image, get_manual_lyrics
+from models.song import Song, Image, get_manual_lyrics, Lyrics
 from models.creators import Person, Creators, role_transform
 from models.video import Video, Site, video_from_site, get_video_bilibili
 from utils import string, japanese
@@ -106,7 +106,7 @@ def parse_albums(albums: list) -> List[str]:
 
 def get_color(image_path: Path) -> Optional[ColorScheme]:
     try:
-        if image_path and get_config().color.color_from_image:
+        if image_path and image_path.exists() and get_config().color.color_from_image:
             color: Color = pick_color(str(image_path))
             text = text_color(color)
             colors = ColorScheme(text=text, background=color)
@@ -138,7 +138,9 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
     if get_config().wikitext.furigana_local:
         lyrics_ja = japanese.furigana_local(lyrics_ja)
     lyrics_chs = get_chinese_lyrics(song_name, creators.producers[0].name if len(creators.producers) > 0 else "")
-    if not lyrics_chs.lyrics:
+    if get_config().wikitext.lyrics_chs_fail_fast:
+        lyrics_chs = Lyrics(lyrics="")
+    elif not lyrics_chs.lyrics:
         choice = prompt_choices("Supply Chinese translation manually?",
                                 ["Sure.", "No translation exists."])
         if choice == 1:
@@ -149,7 +151,10 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
         videos.append(video_bilibili)
     albums = parse_albums(response['albums'])
     cover_name = f"{name_chs}封面.jpg"
-    image_path, video = download_thumbnail(videos, cover_name)
+    if get_config().image.download_cover:
+        image_path, video = download_thumbnail(videos, cover_name)
+    else:
+        image_path, video = None, videos[0]
     colors = get_color(image_path)
     illustrators = creators.staffs.get("曲绘", None)
     image: Image = Image(image_path, cover_name, video.url, illustrators)

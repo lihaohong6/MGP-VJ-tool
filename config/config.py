@@ -16,6 +16,7 @@ else:
     application_path = application_path.joinpath("..")
 # os.environ['PYWIKIBOT_DIR'] = str(application_path.absolute())
 output_path: Path = application_path.joinpath("output")
+output_path.mkdir(exist_ok=True)
 
 
 @dataclass
@@ -24,7 +25,7 @@ class WikitextConfig(yaml.YAMLObject):
     process_lyrics_jap: bool = True
     furigana_local: bool = True
     furigana_all: bool = True
-    lyrics_chs_fail_fast: bool = False
+    lyrics_chs_fail_fast: bool = True
     uploader_note: bool = False
     producer_template_and_cat: bool = True
 
@@ -40,6 +41,7 @@ class ColorConfig(yaml.YAMLObject):
 @dataclass
 class ImageConfig(yaml.YAMLObject):
     yaml_tag = u'!ImageConfig'
+    download_cover: bool = False
     download_all: bool = False
     crop: bool = True
     crop_threshold: int = 20

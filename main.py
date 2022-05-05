@@ -141,10 +141,12 @@ def create_song(song: Song):
 
 def create_lyrics(song: Song):
     lyrics_chs = song.lyrics_chs
-    chs_exist = True if lyrics_chs.lyrics else False
+    chs_exist = True if lyrics_chs.lyrics is not None else False
     if chs_exist:
-        translation_notice = f"*翻译：{assert_str_exists(lyrics_chs.translator)}" \
-                             f"<ref>翻译转载自[{lyrics_chs.source_url} {lyrics_chs.source_name}]</ref>"
+        translation_notice = f"*翻译：{assert_str_exists(lyrics_chs.translator)}"
+        if not is_empty(lyrics_chs.source_name) or not is_empty(lyrics_chs.source_url):
+            translation_notice += f"<ref>翻译转载自[{assert_str_exists(lyrics_chs.source_url)} " \
+                                  f"{assert_str_exists(lyrics_chs.source_name)}]</ref>"
     else:
         translation_notice = "{{求翻译}}"
 
@@ -155,7 +157,7 @@ def create_lyrics(song: Song):
 |rstyle=color:;
 |containerstyle=background:;
 |original={assert_str_exists(song.lyrics_jap)}
-{f'|translated={song.lyrics_chs.lyrics}' if song.lyrics_chs.lyrics else ''}
+{f'|translated={song.lyrics_chs.lyrics}' if chs_exist else ''}
 }}}}
 """
 
