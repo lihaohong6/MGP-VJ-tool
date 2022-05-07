@@ -123,7 +123,6 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
     logging.info(f"Fetching song details with id {song_id} from vocadb.")
     url = f"https://vocadb.net/api/songs/{song_id}/details"
     response = json.loads(requests.get(url).text)
-    logging.debug("JSON response from vocadb:\n" + str(response))
     name_ja = song_name
     name_other = [n.strip() for n in utils.string.split(",")]
     creators: Creators = parse_creators(response['artists'], response['artistString'])

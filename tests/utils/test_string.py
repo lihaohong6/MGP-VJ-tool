@@ -4,7 +4,7 @@ from unittest import TestCase
 from utils.string import process_lyrics_jap
 
 
-class Test(TestCase):
+class TestString(TestCase):
     def test_auto_lj(self):
         pass
 

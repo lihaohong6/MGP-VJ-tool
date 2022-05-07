@@ -58,6 +58,7 @@ def join_string(lst: list, deliminator: Union[str, Tuple[str, str]] = ("ã€", "å
 def process_lyrics_jap(lyrics: str) -> str:
     if is_empty(lyrics):
         return ""
+    lyrics = lyrics.replace("\r", "")
     groups = [len(list(repeat)) for char, repeat in groupby(lyrics) if char == '\n']
     total = len(groups)
     counter = Counter(groups)
