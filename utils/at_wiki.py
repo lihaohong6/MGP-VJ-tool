@@ -74,7 +74,7 @@ def get_at_wiki_body(name: str, url: str, lang: str) -> Lyrics:
     match = soup.find("div", {"id": "wikibody"}).find("ul").find_all("li", limit=1)
     if len(match) == 0 or not match[0].find("a") or match[0].find("a").text != name:
         if get_config().wikitext.lyrics_chs_fail_fast:
-            return Lyrics(lyrics="")
+            return Lyrics()
         url = prompt_response(f"Atwiki song in {lang} not found. Supply URL?")
         if is_empty(url):
             return Lyrics()
@@ -117,14 +117,3 @@ def get_chinese_lyrics(name: str, producer: str = "") -> Lyrics:
     url_chs = f"https://w.atwiki.jp/vocaloidchly/search?andor=and&keyword={name + ' ' + producer}"
     return get_at_wiki_body(name, url_chs, "Chinese")
 
-
-def get_lyrics(name: str) -> (List[Tuple[str, str]], str, str):
-    raise NotImplementedError("This function is deprecated.")
-    url_jap = f"https://w.atwiki.jp/hmiku/search?andor=and&keyword={name}"
-    url_chs = f"https://w.atwiki.jp/vocaloidchly/search?andor=and&keyword={name}"
-    jap = get_at_wiki_body(name, url_jap, "Japanese")
-    chs = get_at_wiki_body(name, url_chs, "Chinese")
-    for job, name in chs[0]:
-        if job == "翻譯" or job == "翻译":
-            jap[0].append((job, name))
-    return jap[0], jap[1], chs[1]

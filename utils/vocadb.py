@@ -137,13 +137,14 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
     if get_config().wikitext.furigana_local:
         lyrics_ja = japanese.furigana_local(lyrics_ja)
     lyrics_chs = get_chinese_lyrics(song_name, creators.producers[0].name if len(creators.producers) > 0 else "")
-    if get_config().wikitext.lyrics_chs_fail_fast:
-        lyrics_chs = Lyrics(lyrics="")
-    elif not lyrics_chs.lyrics:
-        choice = prompt_choices("Supply Chinese translation manually?",
-                                ["Sure.", "No translation exists."])
-        if choice == 1:
-            lyrics_chs = get_manual_lyrics()
+    if not lyrics_chs.lyrics:
+        if get_config().wikitext.lyrics_chs_fail_fast:
+            lyrics_chs = Lyrics(lyrics="")
+        else:
+            choice = prompt_choices("Supply Chinese translation manually?",
+                                    ["Sure.", "No translation exists."])
+            if choice == 1:
+                lyrics_chs = get_manual_lyrics()
     videos = parse_videos(response['pvs'])
     video_bilibili = get_video_bilibili()
     if video_bilibili:
