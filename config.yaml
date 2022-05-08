@@ -28,7 +28,7 @@ image: !ImageConfig
   download_all: false
   # 自动裁剪封面黑边
   crop: true
-  # 剪裁判断值，数字越高剪裁力度越大。建议设为0-50避免误伤封面。
+  # 默认剪裁判断值，数字越高剪裁力度越大。建议设为0-50避免误伤封面。
   crop_threshold: 20
   # 自动上传图片至萌娘共享
   auto_upload: false

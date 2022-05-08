@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from typing import Tuple, List
 
 from config import data
+from config.config import get_config
 from models.song import Lyrics
 from utils.helpers import prompt_response
 from utils.string import is_empty
@@ -72,6 +73,8 @@ def get_at_wiki_body(name: str, url: str, lang: str) -> Lyrics:
     # TODO: more robust searching mechanism
     match = soup.find("div", {"id": "wikibody"}).find("ul").find_all("li", limit=1)
     if len(match) == 0 or not match[0].find("a") or match[0].find("a").text != name:
+        if get_config().wikitext.lyrics_chs_fail_fast:
+            return Lyrics(lyrics="")
         url = prompt_response(f"Atwiki song in {lang} not found. Supply URL?")
         if is_empty(url):
             return Lyrics()

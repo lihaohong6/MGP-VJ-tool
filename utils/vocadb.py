@@ -8,8 +8,8 @@ import requests
 
 import utils.string
 from config import config
-from config.config import get_config
-from models.color import Color, text_color, ColorScheme
+from config.config import get_config, output_path
+from models.color import Color, get_text_color, ColorScheme
 from models.song import Song, Image, get_manual_lyrics, Lyrics
 from models.creators import Person, Creators, role_transform
 from models.video import Video, Site, video_from_site, get_video_bilibili
@@ -104,13 +104,13 @@ def parse_albums(albums: list) -> List[str]:
     return [a['defaultName'] for a in albums]
 
 
-def get_color(image_path: Path) -> Optional[ColorScheme]:
+def process_image(image_in: Path, image_out: Path) -> Optional[ColorScheme]:
     try:
-        if image_path and image_path.exists() and get_config().color.color_from_image:
-            color: Color = pick_color(str(image_path))
-            text = text_color(color)
-            colors = ColorScheme(text=text, background=color)
-            return colors
+        if image_in is not None and image_in.exists():
+            if get_config().color.color_from_image or get_config().image.crop:
+                return pick_color(image_in, image_out)
+            image_out.unlink(missing_ok=True)
+            image_in.rename(image_out)
     except Exception as e:
         logging.error("Can't get color from image", exc_info=e)
     return None
@@ -149,12 +149,13 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
     if video_bilibili:
         videos.append(video_bilibili)
     albums = parse_albums(response['albums'])
-    cover_name = f"{name_chs}封面.jpg"
     if get_config().image.download_cover:
-        image_path, video = download_thumbnail(videos, cover_name)
+        image_path, video = download_thumbnail(videos, "cover.jpg")
     else:
         image_path, video = None, videos[0]
-    colors = get_color(image_path)
+    cover_name = f"{name_chs}封面.jpg"
+    cover_path = output_path.joinpath(cover_name)
+    colors = process_image(image_path, cover_path)
     illustrators = creators.staffs.get("曲绘", None)
     image: Image = Image(image_path, cover_name, video.url, illustrators)
     return Song(name_ja, name_chs, name_other, creators, lyrics_ja, lyrics_chs, image, videos, albums, colors)

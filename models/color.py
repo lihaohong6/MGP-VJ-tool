@@ -40,7 +40,15 @@ class Color:
         return '#%02x%02x%02x' % (self.red, self.green, self.blue)
 
 
-def text_color(c: Color) -> Color:
+def black():
+    return Color(0, 0, 0)
+
+
+def white():
+    return Color(255, 255, 255)
+
+
+def get_text_color(c: Color) -> Color:
     white = Color(255, 255, 255)
     num = c.perceived_lightness()
     if num > white.perceived_lightness() / 2:

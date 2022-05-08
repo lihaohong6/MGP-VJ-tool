@@ -12,7 +12,7 @@ def main():
     args = parser.parse_args()
     file_in: Path = args.input
     file_out: Path = args.output
-    remove_black_boarders(str(file_in), str(file_out), args.threshold)
+    remove_black_boarders(file_in, file_out, args.threshold)
 
 
 if __name__ == "__main__":
