@@ -21,6 +21,7 @@ role_mapping = {
     "Lyricist": "作词",
     "Arranger": "编曲",
     "Arrange": "编曲",
+    "VoiceManipulator": "调教",
     "Mixer": "混音",
     "Mastering": "母带处理",
     "Instrumentalist": "乐器演奏",
