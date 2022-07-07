@@ -165,7 +165,7 @@ def create_end(song: Song):
     if get_config().wikitext.producer_template_and_cat:
         list_templates, list_cats = asyncio.run(get_producer_info(song.creators.producers))
         producer_templates = join_string(list_templates, deliminator="",
-                                         outer_wrapper=("{{Template:", "}}\n"))
+                                         outer_wrapper=("{{", "}}\n"))
         producer_cats = join_string(list_cats, deliminator="",
                                     outer_wrapper=("[[Category:", "作品]]\n"))
     else:

@@ -109,7 +109,8 @@ def parse_body(name: str, text: str) -> (List[Tuple[str, str]], str):
 def get_japanese_lyrics(name: str) -> str:
     logging.info("Trying to fetch Japanese lyrics from atwiki.")
     url_jap = f"https://w.atwiki.jp/hmiku/search?andor=and&keyword={name}"
-    return get_at_wiki_body(name, url_jap, "Japanese").lyrics_chs
+    res = get_at_wiki_body(name, url_jap, "Japanese")
+    return res.lyrics_chs if res else ""
 
 
 def get_chinese_lyrics(name: str, producer: str = "") -> Lyrics:
