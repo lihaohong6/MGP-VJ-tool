@@ -6,16 +6,9 @@ Automatically generates Wikitext for Japanese VOCALOID songs, tailored specifica
 
 ## 启动方法
 
-从GitHub下载代码。
+从[releases](https://www.github.com/syccxcc/MGP-VJ-tool/releases) 下载程序。请选择与操作系统对应的压缩包。例如：Windows10用户请选择`Windows10.zip`。
 
-确保以下要求被满足：
-* 安装了`Python3.8`或更高，并且`Python`在`path`里。安装程序一般会自动将`Python`加入`path`，所以不用手动添加。
-* 安装程序依赖的库。可以直接运行`install.bat`，也可以手动用`pip` [安装](https://packaging.python.org/en/latest/tutorials/installing-packages/#requirements-files) 。所有的依赖都在`requirements.txt`中。
-
-运行`run.bat`（Windows）或`run.sh`（OS X），或者在命令行中输入
-```shell
-python3 main.py
-```
+将压缩包解压后运行`main`即可使用。
 
 ## 使用方法
 
@@ -29,7 +22,8 @@ python3 main.py
 通过修改`config.yaml`文件，可以解锁以下功能：
 1. 询问是否有投稿文。如果输入投稿文，则需要输入多行内容，结束时输入空行告诉程序输入停止。
 2. 展示歌曲的封面图，并要求用户点击图片选择背景颜色，该颜色会被用在`VOCALOID_Songbox`和`VOCALOID Songbox Introduction`两个模板。
-3. 以及其它默认打开的功能，如裁剪封面图片的黑边。
+3. 自动处理中日对照的翻译。
+4. 以及其它默认打开的功能，如裁剪封面图片的黑边。
 
 如果出现无法解决的问题，程序会
 1. 询问用户该怎么办。例如：在vocadb上找到多个同名歌时让用户做决定；找不到歌曲的中文翻译时要求用户提供。
@@ -44,6 +38,3 @@ python3 main.py
 错误范例："用不了，总是出错"
 
 正确范例：输入曲名xxx，视频链接xxx之后，程序输出了以下错误信息"..."
-
-* 除了AtWiki和vocadb，可以考虑从别的网站抓取信息。没什么技术困难，但是费时间。例如抓取网易云音乐的歌词（不过Ann好像写过这个的脚本）
-* 更智能的歌词选择：现在已经可以去除大部分开头与歌词无关的内容。但是不一定能适配所有AtWiki条目。
