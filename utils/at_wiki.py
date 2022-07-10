@@ -73,11 +73,7 @@ def get_at_wiki_body(name: str, url: str, lang: str) -> Optional[Lyrics]:
     # TODO: more robust searching mechanism
     match = soup.find("div", {"id": "wikibody"}).find("ul").find_all("li", limit=1)
     if len(match) == 0 or not match[0].find("a") or match[0].find("a").text != name:
-        if get_config().wikitext.lyrics_chs_fail_fast:
-            return None
-        url = prompt_response(f"Atwiki song in {lang} not found. Supply URL?")
-        if is_empty(url):
-            return None
+        return None
     else:
         # FIXME: adjust for multiple songs found
         url = "https:" + match[0].find("a").get("href")
