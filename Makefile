@@ -7,7 +7,8 @@ FILE_NAME = 'macOS.zip'
 endif
 
 build: dist
-	cp README.md config.yaml dist
+	cp README.md config_simple.yaml dist
+	mv dist/config_simple.yaml dist/config.yaml
 	tar -czf $(FILE_NAME) dist
 	rm -rf build main.spec
 
