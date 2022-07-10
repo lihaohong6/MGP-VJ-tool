@@ -5,8 +5,8 @@ idna==3.3
 requests==2.27.1
 soupsieve==2.3.1
 urllib3==1.26.8
-opencv-python~=4.5.5.64
+Pillow~=9.1.0
 numpy~=1.22.3
 PyYAML~=6.0
-pyinstaller
-requests_futures
+pyinstaller~=5.0.1
+requests_futures~=1.0.0

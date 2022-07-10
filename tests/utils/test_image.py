@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from utils.image import remove_black_boarders, pick_color
-from models.color import Color, text_color
+from models.color import Color, get_text_color
 
 
 class ImageTest(TestCase):
@@ -16,10 +16,10 @@ class ImageTest(TestCase):
     def test_text_color(self):
         black = Color(0, 0, 0)
         white = Color(255, 255, 255)
-        self.assertEqual(white, text_color(Color(100, 100, 150)))
-        self.assertEqual(white, text_color(black))
-        self.assertEqual(black, text_color(white))
-        self.assertEqual(black, text_color(Color(130, 140, 150)))
-        self.assertEqual(black, text_color(Color(0, 255, 255)))
+        self.assertEqual(white, get_text_color(Color(100, 100, 150)))
+        self.assertEqual(white, get_text_color(black))
+        self.assertEqual(black, get_text_color(white))
+        self.assertEqual(black, get_text_color(Color(130, 140, 150)))
+        self.assertEqual(black, get_text_color(Color(0, 255, 255)))
         print(Color(4, 156, 161).perceived_lightness())
         print(Color(255, 255, 255).perceived_lightness())

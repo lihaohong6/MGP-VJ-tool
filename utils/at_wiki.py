@@ -3,9 +3,10 @@ import re
 
 import requests
 from bs4 import BeautifulSoup
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 
 from config import data
+from config.config import get_config
 from models.song import Lyrics
 from utils.helpers import prompt_response
 from utils.string import is_empty
@@ -67,21 +68,19 @@ def shorten_url(url: str) -> str:
     return url
 
 
-def get_at_wiki_body(name: str, url: str, lang: str) -> Lyrics:
+def get_at_wiki_body(name: str, url: str, lang: str) -> Optional[Lyrics]:
     soup = BeautifulSoup(requests.get(url).text, "html.parser")
     # TODO: more robust searching mechanism
     match = soup.find("div", {"id": "wikibody"}).find("ul").find_all("li", limit=1)
     if len(match) == 0 or not match[0].find("a") or match[0].find("a").text != name:
-        url = prompt_response(f"Atwiki song in {lang} not found. Supply URL?")
-        if is_empty(url):
-            return Lyrics()
+        return None
     else:
         # FIXME: adjust for multiple songs found
         url = "https:" + match[0].find("a").get("href")
     logging.debug("At wiki url " + url)
     soup = BeautifulSoup(requests.get(url).text, "html.parser")
     res = parse_body(name, soup.find("div", {"id": "wikibody"}).text)
-    return Lyrics(staff=res[0], source_name="VOCALOID中文wiki", source_url=shorten_url(url), lyrics=res[1])
+    return Lyrics(staff=res[0], source_name="VOCALOID中文wiki", source_url=shorten_url(url), lyrics_chs=res[1])
 
 
 def parse_body(name: str, text: str) -> (List[Tuple[str, str]], str):
@@ -106,7 +105,8 @@ def parse_body(name: str, text: str) -> (List[Tuple[str, str]], str):
 def get_japanese_lyrics(name: str) -> str:
     logging.info("Trying to fetch Japanese lyrics from atwiki.")
     url_jap = f"https://w.atwiki.jp/hmiku/search?andor=and&keyword={name}"
-    return get_at_wiki_body(name, url_jap, "Japanese").lyrics
+    res = get_at_wiki_body(name, url_jap, "Japanese")
+    return res.lyrics_chs if res else ""
 
 
 def get_chinese_lyrics(name: str, producer: str = "") -> Lyrics:
@@ -114,14 +114,3 @@ def get_chinese_lyrics(name: str, producer: str = "") -> Lyrics:
     url_chs = f"https://w.atwiki.jp/vocaloidchly/search?andor=and&keyword={name + ' ' + producer}"
     return get_at_wiki_body(name, url_chs, "Chinese")
 
-
-def get_lyrics(name: str) -> (List[Tuple[str, str]], str, str):
-    raise NotImplementedError("This function is deprecated.")
-    url_jap = f"https://w.atwiki.jp/hmiku/search?andor=and&keyword={name}"
-    url_chs = f"https://w.atwiki.jp/vocaloidchly/search?andor=and&keyword={name}"
-    jap = get_at_wiki_body(name, url_jap, "Japanese")
-    chs = get_at_wiki_body(name, url_chs, "Chinese")
-    for job, name in chs[0]:
-        if job == "翻譯" or job == "翻译":
-            jap[0].append((job, name))
-    return jap[0], jap[1], chs[1]

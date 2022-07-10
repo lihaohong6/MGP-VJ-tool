@@ -1,7 +1,3 @@
-# This is a sample Python script.
-
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import asyncio
 import logging
 import os
@@ -140,24 +136,27 @@ def create_song(song: Song):
 
 
 def create_lyrics(song: Song):
-    lyrics_chs = song.lyrics_chs
-    chs_exist = True if lyrics_chs.lyrics is not None else False
+    lyrics = song.lyrics
+    lyrics_chs = lyrics.lyrics_chs
+    chs_exist = not is_empty(lyrics_chs)
     if chs_exist:
-        translation_notice = f"*翻译：{assert_str_exists(lyrics_chs.translator)}"
-        if not is_empty(lyrics_chs.source_name) or not is_empty(lyrics_chs.source_url):
-            translation_notice += f"<ref>翻译转载自[{assert_str_exists(lyrics_chs.source_url)} " \
-                                  f"{assert_str_exists(lyrics_chs.source_name)}]</ref>"
+        translation_notice = f"*翻译：{assert_str_exists(lyrics.translator)}"
+        if not is_empty(lyrics.source_name) or not is_empty(lyrics.source_url):
+            translation_notice += f"<ref>翻译转载自[{assert_str_exists(lyrics.source_url)} " \
+                                  f"{assert_str_exists(lyrics.source_name)}]</ref>"
     else:
-        translation_notice = "{{求翻译}}"
-
+        translation_notice = ""
+    has_roma = not is_empty(lyrics.lyrics_roma)
     return f"""== 歌词 ==
 {translation_notice}
-{{{{LyricsKai
+{"{{LyricsKai/Roma/button}}" if has_roma else ""}
+{{{{LyricsKai{'/Roma' if has_roma else ''}
 |lstyle=color:;
 |rstyle=color:;
 |containerstyle=background:;
-|original={assert_str_exists(song.lyrics_jap)}
-{f'|translated={song.lyrics_chs.lyrics}' if chs_exist else ''}
+|original={assert_str_exists(song.lyrics.lyrics_jap)}
+|translated={lyrics_chs if chs_exist else ''}
+{"|photrans=" + lyrics.lyrics_roma if has_roma else ''}
 }}}}
 """
 
@@ -166,7 +165,7 @@ def create_end(song: Song):
     if get_config().wikitext.producer_template_and_cat:
         list_templates, list_cats = asyncio.run(get_producer_info(song.creators.producers))
         producer_templates = join_string(list_templates, deliminator="",
-                                         outer_wrapper=("{{Template:", "}}\n"))
+                                         outer_wrapper=("{{", "}}\n"))
         producer_cats = join_string(list_cats, deliminator="",
                                     outer_wrapper=("[[Category:", "作品]]\n"))
     else:
@@ -227,10 +226,6 @@ def main():
     song = get_song_by_name(data.name_japanese, name_chinese)
     if not song:
         raise NotImplementedError("No source of information exists besides VOCADB.")
-    for job, name in song.lyrics_chs.staff:
-        if job == "翻譯" or job == "翻译":
-            song.lyrics_chs.translator = name
-            break
     header = create_header(song)
     uploader_note = create_uploader_note(song)
     intro = create_intro(song)
@@ -263,5 +258,3 @@ if __name__ == '__main__':
         logging.error("This error is unexpected. "
                       "Please go to https://github.com/syccxcc/MGP-VJ-tool/issues to report this issue.")
     input("Press Enter to exit...")
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
