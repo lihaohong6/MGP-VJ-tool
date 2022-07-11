@@ -136,7 +136,7 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
                                     ["Sure.", "No."])
             if choice == 1:
                 lyrics = get_manual_lyrics()
-    if not is_empty(lyrics.lyrics_chs):
+    if not is_empty(lyrics.lyrics_jap):
         lyrics_ja = lyrics.lyrics_jap
     if get_config().wikitext.process_lyrics_jap:
         lyrics_ja = string.process_lyrics_jap(lyrics_ja)
@@ -149,7 +149,12 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
         videos.append(video_bilibili)
     albums = parse_albums(response['albums'])
     if get_config().image.download_cover:
-        image_path, video = download_thumbnail(videos, "cover.jpg")
+        res = download_thumbnail(videos, "cover.jpg")
+        if res is None:
+            # FIXME: what if no video?
+            image_path, video = None, videos[0]
+        else:
+            image_path, video = res
     else:
         image_path, video = None, videos[0]
     cover_name = f"{name_chs}封面.jpg"

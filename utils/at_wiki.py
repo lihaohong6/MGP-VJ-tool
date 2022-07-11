@@ -80,7 +80,13 @@ def get_at_wiki_body(name: str, url: str, lang: str) -> Optional[Lyrics]:
     logging.debug("At wiki url " + url)
     soup = BeautifulSoup(requests.get(url).text, "html.parser")
     res = parse_body(name, soup.find("div", {"id": "wikibody"}).text)
-    return Lyrics(staff=res[0], source_name="VOCALOID中文wiki", source_url=shorten_url(url), lyrics_chs=res[1])
+    translator = [s for s in res[0] if s[0] == "翻译" or s[0] == "翻譯"]
+    if len(translator) == 0:
+        translator = "ERROR!"
+    else:
+        translator = translator[0][1]
+    return Lyrics(staff=res[0], source_name="VOCALOID中文wiki", source_url=shorten_url(url), lyrics_chs=res[1],
+                  translator=translator)
 
 
 def parse_body(name: str, text: str) -> (List[Tuple[str, str]], str):
@@ -111,6 +117,5 @@ def get_japanese_lyrics(name: str) -> str:
 
 def get_chinese_lyrics(name: str, producer: str = "") -> Lyrics:
     logging.info("Trying to fetch Chinese lyrics from atwiki.")
-    url_chs = f"https://w.atwiki.jp/vocaloidchly/search?andor=and&keyword={name + ' ' + producer}"
+    url_chs = f"https://w.atwiki.jp/vocaloidchly/search?andor=and&keyword={name + '+' + producer}&search_field=source"
     return get_at_wiki_body(name, url_chs, "Chinese")
-

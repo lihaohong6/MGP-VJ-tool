@@ -14,6 +14,9 @@ build: dist
 
 dist: main.py
 	pyinstaller -F main.py
+# change to rx r r so that the program can be executed
+# ignores the error generated under Windows
+	chmod 544 dist/main || true
 
 clean:
 	rm -rf output dist build apicache-py3 logs
