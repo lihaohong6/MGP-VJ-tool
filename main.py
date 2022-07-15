@@ -9,7 +9,7 @@ from typing import List
 from config import data
 from config.config import load_config, get_config, application_path, output_path
 from models.creators import Person, person_list_to_str, Staff, role_priority
-from models.song import Song
+from models.song import Song, Lyrics
 from models.video import Site, Video, view_count_from_site, get_video, only_canonical_videos
 from utils import login
 from utils.helpers import prompt_choices, prompt_response, prompt_multiline
@@ -33,10 +33,10 @@ def videos_to_str(videos: List[Video]) -> List[str]:
     result = []
     for i in range(len(videos)):
         if i == 0 or videos[i].uploaded != videos[i - 1].uploaded:
-            date = datetime_to_ymd(videos[i].uploaded)
+            date = "于" + datetime_to_ymd(videos[i].uploaded)
         else:
             date = "同日"
-        s = f"于{date}投稿至{videos[i].site.value}，再生数为{view_count_from_site(videos[i])}"
+        s = f"{date}投稿至{videos[i].site.value}，再生数为{view_count_from_site(videos[i])}"
         result.append(s)
     return result
 
@@ -135,8 +135,7 @@ def create_song(song: Song):
             f"}}}}\n\n{video_player}")
 
 
-def create_lyrics(song: Song):
-    lyrics = song.lyrics
+def create_lyrics(lyrics: Lyrics):
     lyrics_chs = lyrics.lyrics_chs
     chs_exist = not is_empty(lyrics_chs)
     if chs_exist:
@@ -154,7 +153,7 @@ def create_lyrics(song: Song):
 |lstyle=color:;
 |rstyle=color:;
 |containerstyle=background:;
-|original={assert_str_exists(song.lyrics.lyrics_jap)}
+|original={assert_str_exists(lyrics.lyrics_jap)}
 |translated={lyrics_chs if chs_exist else ''}
 {"|photrans=" + lyrics.lyrics_roma if has_roma else ''}
 }}}}
@@ -164,6 +163,7 @@ def create_lyrics(song: Song):
 def create_end(song: Song):
     if get_config().wikitext.producer_template_and_cat:
         list_templates, list_cats = asyncio.run(get_producer_info(song.creators.producers))
+        # FIXME: duplicates reported here
         producer_templates = join_string(list_templates, deliminator="",
                                          outer_wrapper=("{{", "}}\n"))
         producer_cats = join_string(list_cats, deliminator="",
@@ -230,7 +230,7 @@ def main():
     uploader_note = create_uploader_note(song)
     intro = create_intro(song)
     song_body = create_song(song)
-    lyrics = create_lyrics(song)
+    lyrics = create_lyrics(song.lyrics)
     end = create_end(song)
     wikitext_dir = output_path.joinpath(f"{song.name_chs}.wikitext")
     write_to_file("\n".join([header, uploader_note, intro, song_body, lyrics, end]),

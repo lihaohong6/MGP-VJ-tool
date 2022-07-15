@@ -42,7 +42,7 @@ def expand_name(producer) -> List[str]:
     names = [producer.name, *producer.name_eng]
     names = [name for name in names if not is_empty(name)]
     names.extend([name[:-1] for name in names if len(name) > 0 and name[-1] == 'P'])
-    return names
+    return list(set(names))
 
 
 async def producer_checker(producers: List[Person], base_url: str, predicate: Callable[[str], bool]):
