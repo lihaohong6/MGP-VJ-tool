@@ -123,12 +123,13 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
     name_other = [n.strip() for n in utils.string.split(",")]
     creators: Creators = parse_creators(response['artists'], response['artistString'])
     lyricsList = response['lyricsFromParents']
+    producer_temp = creators.producers[0].name if len(creators.producers) > 0 else ""
     if len(lyricsList) > 0:
         lyrics_ja = get_lyrics(response['lyricsFromParents'][0]['id'])
     else:
         logging.warning("Lyrics not found on vocadb.")
-        lyrics_ja = get_japanese_lyrics(name_ja)
-    lyrics = get_chinese_lyrics(song_name, creators.producers[0].name if len(creators.producers) > 0 else "")
+        lyrics_ja = get_japanese_lyrics(name_ja, producer_temp)
+    lyrics = get_chinese_lyrics(song_name, producer_temp)
     if lyrics is None:
         lyrics = Lyrics()
         if not get_config().wikitext.lyrics_chs_fail_fast:

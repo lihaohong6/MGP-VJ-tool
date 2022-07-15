@@ -68,12 +68,13 @@ def shorten_url(url: str) -> str:
     return url
 
 
-def get_at_wiki_body(name: str, urls: List[str], lang: str) -> Optional[Lyrics]:
+def get_at_wiki_body(name: str, urls: List[str], lang: str, producer: str) -> Optional[Lyrics]:
     found = None
     for url in urls:
         soup = BeautifulSoup(requests.get(url).text, "html.parser")
         match = soup.find("div", {"id": "wikibody"}).find("ul").find_all("li", limit=1)
-        if len(match) > 0 and match[0].find("a") and match[0].find("a").text == name:
+        if len(match) > 0 and match[0].find("a") and (match[0].find("a").text == name or
+                                                      match[0].find("a").text == name + "/" + producer):
             found = "https:" + match[0].find("a").get("href")
             break
     if found is None:
@@ -109,14 +110,14 @@ def parse_body(name: str, text: str) -> (List[Tuple[str, str]], str):
     return parse_at_wiki_header(header), parse_at_wiki_body(body)
 
 
-def get_japanese_lyrics(name: str) -> str:
+def get_japanese_lyrics(name: str, producer: str = "") -> str:
     logging.info("Trying to fetch Japanese lyrics from atwiki.")
-    url_jap = f"https://w.atwiki.jp/hmiku/search?andor=and&keyword={name}"
-    res = get_at_wiki_body(name, url_jap, "Japanese")
+    url_jap = "https://w.atwiki.jp/hmiku/search?andor=and&keyword={}&search_field=source"
+    res = get_at_wiki_body(name, [url_jap.format(name + "+" + producer), url_jap.format(name)], "Japanese", producer)
     return res.lyrics_chs if res else ""
 
 
 def get_chinese_lyrics(name: str, producer: str = "") -> Lyrics:
     logging.info("Trying to fetch Chinese lyrics from atwiki.")
     url_chs = "https://w.atwiki.jp/vocaloidchly/search?andor=and&keyword={}&search_field=source"
-    return get_at_wiki_body(name, [url_chs.format(name + '+' + producer), url_chs.format(name)], "Chinese")
+    return get_at_wiki_body(name, [url_chs.format(name + '+' + producer), url_chs.format(name)], "Chinese", producer)
