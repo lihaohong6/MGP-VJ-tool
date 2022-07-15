@@ -69,26 +69,31 @@ def shorten_url(url: str) -> str:
 
 
 def get_at_wiki_body(name: str, urls: List[str], lang: str, producer: str) -> Optional[Lyrics]:
-    found = None
-    for url in urls:
-        soup = BeautifulSoup(requests.get(url).text, "html.parser")
-        match = soup.find("div", {"id": "wikibody"}).find("ul").find_all("li", limit=1)
-        if len(match) > 0 and match[0].find("a") and (match[0].find("a").text == name or
-                                                      match[0].find("a").text == name + "/" + producer):
-            found = "https:" + match[0].find("a").get("href")
-            break
-    if found is None:
+    try:
+        found = None
+        for url in urls:
+            soup = BeautifulSoup(requests.get(url).text, "html.parser")
+            match = soup.find("div", {"id": "wikibody"}).find("ul").find_all("li", limit=1)
+            if len(match) > 0 and match[0].find("a") and (match[0].find("a").text == name or
+                                                          match[0].find("a").text == name + "/" + producer):
+                found = "https:" + match[0].find("a").get("href")
+                break
+        if found is None:
+            return None
+        logging.debug("At wiki url " + found)
+        soup = BeautifulSoup(requests.get(found).text, "html.parser")
+        res = parse_body(name, soup.find("div", {"id": "wikibody"}).text)
+        translator = [s for s in res[0] if s[0] == "翻译" or s[0] == "翻譯"]
+        if len(translator) == 0:
+            translator = "ERROR!"
+        else:
+            translator = translator[0][1]
+        return Lyrics(staff=res[0], source_name="VOCALOID中文wiki", source_url=shorten_url(found), lyrics_chs=res[1],
+                      translator=translator)
+    except Exception as e:
+        logging.error(e)
+        logging.error("An error occurred while fetching", lang, "lyrics from atwiki. Falling back...")
         return None
-    logging.debug("At wiki url " + found)
-    soup = BeautifulSoup(requests.get(found).text, "html.parser")
-    res = parse_body(name, soup.find("div", {"id": "wikibody"}).text)
-    translator = [s for s in res[0] if s[0] == "翻译" or s[0] == "翻譯"]
-    if len(translator) == 0:
-        translator = "ERROR!"
-    else:
-        translator = translator[0][1]
-    return Lyrics(staff=res[0], source_name="VOCALOID中文wiki", source_url=shorten_url(found), lyrics_chs=res[1],
-                  translator=translator)
 
 
 def parse_body(name: str, text: str) -> (List[Tuple[str, str]], str):
@@ -117,7 +122,7 @@ def get_japanese_lyrics(name: str, producer: str = "") -> str:
     return res.lyrics_chs if res else ""
 
 
-def get_chinese_lyrics(name: str, producer: str = "") -> Lyrics:
+def get_chinese_lyrics(name: str, producer: str = "") -> Optional[Lyrics]:
     logging.info("Trying to fetch Chinese lyrics from atwiki.")
     url_chs = "https://w.atwiki.jp/vocaloidchly/search?andor=and&keyword={}&search_field=source"
     return get_at_wiki_body(name, [url_chs.format(name + '+' + producer), url_chs.format(name)], "Chinese", producer)
