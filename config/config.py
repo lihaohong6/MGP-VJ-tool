@@ -52,6 +52,7 @@ class ImageConfig(yaml.YAMLObject):
 class Config(yaml.YAMLObject):
     yaml_tag = u'!Config'
     save_to_file: str = None
+    vocadb_manual: bool = False
     wikitext: WikitextConfig = WikitextConfig()
     color: ColorConfig = ColorConfig()
     image: ImageConfig = ImageConfig()

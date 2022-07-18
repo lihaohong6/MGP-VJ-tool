@@ -206,7 +206,7 @@ def search_song_id(name: str) -> Union[str, None]:
     if len(response) == 0:
         logging.error("No entry found in VOCADB.")
         return None
-    while len(response) > 1:
+    while len(response) > 1 or (len(response) == 1 and get_config().vocadb_manual):
         options = [f"{song['defaultName']} by {song['artistString']}"
                    for song in response]
         options.append("None of the above.")
