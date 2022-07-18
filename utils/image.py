@@ -8,7 +8,7 @@ import numpy as np
 import requests
 from PIL import Image, ImageOps, ImageTk
 
-from config.config import get_config, output_path
+from config.config import get_config, get_output_path
 from models.color import Color, get_text_color, ColorScheme, black, white
 from models.video import Video, Site
 
@@ -144,10 +144,10 @@ def pick_color(image_in: [str, Path], image_out: [str, Path]) -> ColorScheme:
 
 def download_image(url: str, site: Site, index: int) -> Union[Path, None]:
     try:
-        temp_dir = output_path.joinpath("temp.jpeg")
+        temp_dir = get_output_path().joinpath("temp.jpeg")
         logging.info("Downloading cover from " + site.value + " with url " + url)
         download_file(url, temp_dir)
-        image_name = output_path.joinpath(f"temp{index}.jpeg")
+        image_name = get_output_path().joinpath(f"temp{index}.jpeg")
         image_name.unlink(missing_ok=True)
         temp_dir.rename(image_name)
         return image_name
@@ -185,7 +185,7 @@ def download_thumbnail(videos: List[Video], filename: str) -> Optional[Tuple[Pat
         Site.NICO_NICO: 2,
     }
     videos = sorted(videos, key=lambda vid: weight[vid.site])
-    target = output_path.joinpath(filename)
+    target = get_output_path().joinpath(filename)
     if not get_config().image.download_all:
         return download_first(videos, target)
     candidates = download_all(videos, stop_after_success=False)

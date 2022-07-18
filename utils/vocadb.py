@@ -7,7 +7,7 @@ from typing import Union, List, Dict, Optional
 import requests
 
 import utils.string
-from config.config import get_config, output_path
+from config.config import get_config, get_output_path
 from models.color import ColorScheme
 from models.creators import Person, Creators, role_transform
 from models.song import Song, Image, get_manual_lyrics, Lyrics
@@ -159,7 +159,7 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
     else:
         image_path, video = None, videos[0]
     cover_name = f"{name_chs}封面.jpg"
-    cover_path = output_path.joinpath(cover_name)
+    cover_path = get_output_path().joinpath(cover_name)
     colors = process_image(image_path, cover_path)
     illustrators = creators.staffs.get("曲绘", None)
     image: Image = Image(image_path, cover_name, video.url, illustrators)

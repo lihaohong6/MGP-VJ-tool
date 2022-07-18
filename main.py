@@ -7,7 +7,7 @@ import webbrowser
 from typing import List
 
 from config import data
-from config.config import load_config, get_config, application_path, output_path
+from config.config import load_config, get_config, application_path, get_output_path
 from models.creators import Person, person_list_to_str, Staff, role_priority
 from models.song import Song, Lyrics
 from models.video import Site, Video, view_count_from_site, get_video, only_canonical_videos
@@ -218,7 +218,6 @@ def main():
     setup_save_input(get_config().save_to_file)
     if get_config().image.auto_upload:
         login.main()
-    output_path.mkdir(exist_ok=True)
     data.name_japanese = prompt_response("Japanese name?")
     name_chinese = prompt_response("Chinese name?")
     if is_empty(name_chinese):
@@ -232,7 +231,7 @@ def main():
     song_body = create_song(song)
     lyrics = create_lyrics(song.lyrics)
     end = create_end(song)
-    wikitext_dir = output_path.joinpath(f"{song.name_chs}.wikitext")
+    wikitext_dir = get_output_path().joinpath(f"{song.name_chs}.wikitext")
     write_to_file("\n".join([header, uploader_note, intro, song_body, lyrics, end]),
                   wikitext_dir)
     if song.image.path and get_config().image.auto_upload:
