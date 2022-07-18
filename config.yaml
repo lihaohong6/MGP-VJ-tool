@@ -1,7 +1,7 @@
 --- !Config
 save_to_file: ""
 # 当vocadb有重名歌曲，且程序默认选择错误的曲目时启用此项
-vocadb_manual: true
+vocadb_manual: false
 wikitext: !WikitextConfig
   # 对日语歌词额外处理（去除多余的换行）
   process_lyrics_jap: true
