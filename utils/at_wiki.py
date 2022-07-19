@@ -73,7 +73,10 @@ def get_at_wiki_body(name: str, urls: List[str], lang: str, producer: str) -> Op
         found = None
         for url in urls:
             soup = BeautifulSoup(requests.get(url).text, "html.parser")
-            match = soup.find("div", {"id": "wikibody"}).find("ul").find_all("li", limit=1)
+            result_list = soup.find("div", {"id": "wikibody"}).find("ul")
+            if result_list is None:
+                continue
+            match = result_list.find_all("li", limit=1)
             if len(match) > 0 and match[0].find("a") and (match[0].find("a").text == name or
                                                           match[0].find("a").text == name + "/" + producer):
                 found = "https:" + match[0].find("a").get("href")
@@ -92,7 +95,7 @@ def get_at_wiki_body(name: str, urls: List[str], lang: str, producer: str) -> Op
                       translator=translator)
     except Exception as e:
         logging.error(e)
-        logging.error("An error occurred while fetching", lang, "lyrics from atwiki. Falling back...")
+        logging.error("An error occurred while fetching " + lang + " lyrics from atwiki. Falling back...")
         return None
 
 
