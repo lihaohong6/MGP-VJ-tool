@@ -15,7 +15,7 @@ from utils import login
 from utils.helpers import prompt_choices, prompt_response, prompt_multiline
 from utils.image import write_to_file
 from utils.mgp import get_producer_info
-from utils.name_converter import name_to_cat, name_to_chinese
+from utils.name_converter import name_to_cat, name_to_chinese, vocaloid_names
 from utils.save_input import setup_save_input
 from utils.string import auto_lj, is_empty, datetime_to_ymd, assert_str_exists, join_string
 from utils.upload import upload_image
@@ -160,9 +160,29 @@ def create_lyrics(lyrics: Lyrics):
 """
 
 
+vocaloid_templates = {'歌爱雪', 'v flower', 'SeeU', '夏语遥', '重音Teto',
+                      '爱莲娜·芙缇', '艾可', '赤羽', '诗岸', '苍穹', '海伊',
+                      '牧心', 'Minus', '岸晓', 'Infinity', '默辰', '可不', '星界'}
+vocaloid_template_mapper = {'鸣花': '鸣花姬·尊'}
+
+
+def get_vocaloid_templates(vocaloids: List[str]) -> List[str]:
+    result = []
+    for v in vocaloids:
+        name = vocaloid_names[v] if v in vocaloid_names else v
+        if name in vocaloid_templates:
+            result.append(name)
+        for key, value in vocaloid_template_mapper.items():
+            if key in name:
+                result.append(value)
+                break
+    return result
+
+
 def create_end(song: Song):
     if get_config().wikitext.producer_template_and_cat:
         list_templates, list_cats = asyncio.run(get_producer_info(song.creators.producers))
+        list_templates.extend(get_vocaloid_templates(song.creators.vocalists_str()))
         # FIXME: duplicates reported here
         producer_templates = join_string(list_templates, deliminator="",
                                          outer_wrapper=("{{", "}}\n"))
