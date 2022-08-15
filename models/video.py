@@ -11,16 +11,16 @@ from utils.helpers import prompt_response, prompt_choices
 from utils.string import split_number
 
 
-class Site(Enum):
+class VideoSite(Enum):
     NICO_NICO = "niconico"
     BILIBILI = "bilibili"
     YOUTUBE = "YouTube"
 
 
 class Video:
-    def __init__(self, site: Site, identifier: str, url: str, views: int, uploaded: datetime,
+    def __init__(self, site: VideoSite, identifier: str, url: str, views: int, uploaded: datetime,
                  thumb_url: str = None, canonical: bool = True):
-        self.site: Site = site
+        self.site: VideoSite = site
         self.identifier: str = identifier
         self.url = url
         self.views: int = views
@@ -29,7 +29,7 @@ class Video:
         self.canonical = canonical
 
     def __str__(self) -> str:
-        return f"Site: {self.site}\n" \
+        return f"VideoSite: {self.site}\n" \
                f"Id: {self.identifier}\n" \
                f"Views: {self.views}\n" \
                f"Uploaded: {self.uploaded}\n" \
@@ -75,7 +75,7 @@ def get_nc_info(vid: str) -> Video:
             index_end = t.find("}", index_start)
             views = int(t[index_start:index_end])
     thumb = soup.find("meta", {"name": "thumbnail"})['content']
-    return Video(Site.NICO_NICO, vid, url, views, date, thumb)
+    return Video(VideoSite.NICO_NICO, vid, url, views, date, thumb)
 
 
 def get_bb_info(vid: str) -> Video:
@@ -93,7 +93,7 @@ def get_bb_info(vid: str) -> Video:
     date = datetime(year=date.year, month=date.month, day=date.day)
     pic = response['data']['pic']
     views = response['data']['stat']['view']
-    return Video(Site.BILIBILI, vid, url, views, date, pic)
+    return Video(VideoSite.BILIBILI, vid, url, views, date, pic)
 
 
 def get_yt_info(vid: str) -> Union[Video, None]:
@@ -103,43 +103,42 @@ def get_yt_info(vid: str) -> Union[Video, None]:
         vid = vid[vid.rfind("/") + 1:]
     url = 'https://www.youtube.com/watch?v=' + vid
     text = requests.get(url).text
-    logging.debug(text)
     soup = BeautifulSoup(text, "html.parser")
     interaction = soup.select_one('meta[itemprop="interactionCount"][content]')
     views = int(interaction['content'])
     date = str_to_date(soup.select_one('meta[itemprop="datePublished"][content]')['content'])
-    return Video(Site.YOUTUBE, vid, url, views, date,
+    return Video(VideoSite.YOUTUBE, vid, url, views, date,
                  thumb_url="https://img.youtube.com/vi/{}/0.jpg".format(vid))
 
 
 info_func = {
-    Site.NICO_NICO: get_nc_info,
-    Site.BILIBILI: get_bb_info,
-    Site.YOUTUBE: get_yt_info
+    VideoSite.NICO_NICO: get_nc_info,
+    VideoSite.BILIBILI: get_bb_info,
+    VideoSite.YOUTUBE: get_yt_info
 }
 
 
 def view_count_from_site(video: Video) -> str:
     # requires Python 3.10; too many compatibility issues
     # match video.site:
-    #     case Site.NICO_NICO:
+    #     case VideoSite.NICO_NICO:
     #         return f"{{{{NiconicoCount|id={video.identifier}}}}}"
-    #     case Site.YOUTUBE:
+    #     case VideoSite.YOUTUBE:
     #         return f"{{{{YoutubeCount|id={video.identifier}|fallback={video.views}+}}}}"
-    #     case Site.BILIBILI:
+    #     case VideoSite.BILIBILI:
     #         return f"{{{{BilibiliCount|id={video.identifier}}}}}"
     #     case _:
     #         return "ERROR"
-    if video.site == Site.NICO_NICO:
+    if video.site == VideoSite.NICO_NICO:
         return f"{{{{NiconicoCount|id={video.identifier}}}}}"
-    if video.site == Site.YOUTUBE:
+    if video.site == VideoSite.YOUTUBE:
         return f"{{{{YoutubeCount|id={video.identifier}}}}}"
-    if video.site == Site.BILIBILI:
+    if video.site == VideoSite.BILIBILI:
         return f"{{{{BilibiliCount|id={video.identifier}}}}}"
     return "ERROR"
 
 
-def video_from_site(site: Site, identifier: str, canonical: bool = True) -> Union[Video, None]:
+def video_from_site(site: VideoSite, identifier: str, canonical: bool = True) -> Union[Video, None]:
     logging.info(f"Fetching video from {site.value}")
     logging.debug(f"Video identifier: {identifier}")
     try:
@@ -169,10 +168,10 @@ def get_video_bilibili() -> Union[Video, None]:
     if bv:
         bv_canonical = prompt_choices("BV canonical?", ["Yes", "No"])
         bv_canonical = bv_canonical == 1
-        return video_from_site(Site.BILIBILI, bv, bv_canonical)
+        return video_from_site(VideoSite.BILIBILI, bv, bv_canonical)
 
 
-def get_video(videos: List[Video], site: Site):
+def get_video(videos: List[Video], site: VideoSite):
     for v in videos:
         if v.site == site:
             return v

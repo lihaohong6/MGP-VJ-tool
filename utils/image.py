@@ -10,7 +10,7 @@ from PIL import Image, ImageOps, ImageTk
 
 from config.config import get_config, get_output_path
 from models.color import Color, get_text_color, ColorScheme, black, white
-from models.video import Video, Site
+from models.video import Video, VideoSite
 
 
 def download_file(url: str, target: Union[str, Path]) -> bool:
@@ -142,7 +142,7 @@ def pick_color(image_in: [str, Path], image_out: [str, Path]) -> ColorScheme:
     return ColorScheme(background=bg_color, text=fg_color)
 
 
-def download_image(url: str, site: Site, index: int) -> Union[Path, None]:
+def download_image(url: str, site: VideoSite, index: int) -> Union[Path, None]:
     try:
         temp_dir = get_output_path().joinpath("temp.jpeg")
         logging.info("Downloading cover from " + site.value + " with url " + url)
@@ -180,9 +180,9 @@ def download_first(videos: List[Video], target: Path) -> Optional[Tuple[Path, Vi
 
 def download_thumbnail(videos: List[Video], filename: str) -> Optional[Tuple[Path, Video]]:
     weight = {
-        Site.YOUTUBE: 0,
-        Site.BILIBILI: 1,
-        Site.NICO_NICO: 2,
+        VideoSite.YOUTUBE: 0,
+        VideoSite.BILIBILI: 1,
+        VideoSite.NICO_NICO: 2,
     }
     videos = sorted(videos, key=lambda vid: weight[vid.site])
     target = get_output_path().joinpath(filename)

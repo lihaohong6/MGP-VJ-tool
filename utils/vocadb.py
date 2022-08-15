@@ -11,7 +11,7 @@ from config.config import get_config, get_output_path
 from models.color import ColorScheme
 from models.creators import Person, Creators, role_transform
 from models.song import Song, Image, get_manual_lyrics, Lyrics
-from models.video import Video, Site, video_from_site, get_video_bilibili
+from models.video import Video, VideoSite, video_from_site, get_video_bilibili
 from utils import string, japanese
 from utils.at_wiki import get_chinese_lyrics, get_japanese_lyrics
 from utils.helpers import prompt_choices
@@ -81,8 +81,8 @@ def parse_creators(artists: list, artist_string: str) -> Creators:
 
 def parse_videos(videos: list) -> List[Video]:
     service_to_site: dict = {
-        'NicoNicoDouga': Site.NICO_NICO,
-        'Youtube': Site.YOUTUBE
+        'NicoNicoDouga': VideoSite.NICO_NICO,
+        'Youtube': VideoSite.YOUTUBE
     }
     result = []
     for v in videos:

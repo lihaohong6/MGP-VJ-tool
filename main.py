@@ -10,7 +10,7 @@ from config import data
 from config.config import load_config, get_config, application_path, get_output_path
 from models.creators import Person, person_list_to_str, Staff, role_priority
 from models.song import Song, Lyrics
-from models.video import Site, Video, view_count_from_site, get_video, only_canonical_videos
+from models.video import VideoSite, Video, view_count_from_site, get_video, only_canonical_videos
 from utils import login
 from utils.helpers import prompt_choices, prompt_response, prompt_multiline
 from utils.image import write_to_file
@@ -43,7 +43,7 @@ def videos_to_str(videos: List[Video]) -> List[str]:
 
 def create_header(song: Song) -> str:
     videos = sorted(song.videos, key=lambda v: v.uploaded)
-    nico = get_video(videos, Site.NICO_NICO)
+    nico = get_video(videos, VideoSite.NICO_NICO)
     top = ""
     if nico and nico.views >= 100000:
         if nico.views >= 1000000:
@@ -53,9 +53,9 @@ def create_header(song: Song) -> str:
     if song.name_chs != song.name_jap:
         top += "{{标题替换|" + auto_lj(song.name_jap) + "}}\n"
     sites = {
-        Site.NICO_NICO: "nnd_id",
-        Site.BILIBILI: "bb_id",
-        Site.YOUTUBE: "yt_id"
+        VideoSite.NICO_NICO: "nnd_id",
+        VideoSite.BILIBILI: "bb_id",
+        VideoSite.YOUTUBE: "yt_id"
     }
     video_id = "".join([f"|{sites.get(s)} = {get_video(videos, s).identifier}\n"
                         for s in sites.keys() if get_video(videos, s) and get_video(videos, s).canonical])
@@ -112,7 +112,7 @@ def create_intro(song: Song):
 
 def create_song(song: Song):
     video_player = ""
-    v = get_video(song.videos, Site.BILIBILI)
+    v = get_video(song.videos, VideoSite.BILIBILI)
     if v:
         video_player = f"{{{{" \
                        f"bilibiliVideo|id={v.identifier}" \
