@@ -96,11 +96,15 @@ def get_bb_info(vid: str) -> Video:
     return Video(VideoSite.BILIBILI, vid, url, views, date, pic)
 
 
-def get_yt_info(vid: str) -> Union[Video, None]:
+def yt_vid_from_url(vid: str) -> str:
     if vid.find("youtube.") != -1:
-        vid = vid[vid.find("=") + 1:]
+        return vid[vid.find("=") + 1:]
     elif vid.find("youtu.be") != -1:
-        vid = vid[vid.rfind("/") + 1:]
+        return vid[vid.rfind("/") + 1:]
+
+
+def get_yt_info(vid: str) -> Union[Video, None]:
+    vid = yt_vid_from_url(vid)
     url = 'https://www.youtube.com/watch?v=' + vid
     text = requests.get(url).text
     soup = BeautifulSoup(text, "html.parser")
@@ -146,7 +150,7 @@ def video_from_site(site: VideoSite, identifier: str, canonical: bool = True) ->
     except Exception as e:
         logging.warning("Failed to fetch info from " + site.value)
         logging.debug("Detailed exception info: ", exc_info=e)
-        return None
+        return Video(site, identifier, "", 0, datetime.fromtimestamp(0))
     if not v:
         return None
     v.canonical = canonical

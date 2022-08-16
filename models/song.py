@@ -1,3 +1,4 @@
+import re
 from collections import Counter
 from dataclasses import dataclass, field
 from itertools import groupby
@@ -90,8 +91,31 @@ def get_manual_lyrics() -> Lyrics:
     roma = tk.Text(root, height=10)
     buttons = tk.PanedWindow(root)
 
+    def blob_translation(text: str) -> bool:
+        jap_lines = []
+        chs_lines = []
+        blobs = re.split("\n\n+", text)
+        for blob in blobs:
+            lines = blob.split("\n")
+            if len(lines) % 2 != 0:
+                return False
+            half = len(lines) // 2
+            jap_lines.extend(lines[:half])
+            chs_lines.extend(lines[half:])
+            jap_lines.append("")
+            chs_lines.append("")
+        jap_text = "\n".join(jap_lines).strip()
+        chs_text = "\n".join(chs_lines).strip()
+        if any(is_kana(c) for c in chs_text):
+            return False
+        jap.replace("1.0", tk.END, jap_text)
+        chs.replace("1.0", tk.END, chs_text)
+        return True
+
     def auto_line_numbers():
         translation_text: str = get_text(translation)
+        if blob_translation(translation_text):
+            return
         groups = [len(list(repeat)) for char, repeat in groupby(translation_text) if char == '\n']
         possibilities = list(Counter(groups).keys())
         text = translation_text
