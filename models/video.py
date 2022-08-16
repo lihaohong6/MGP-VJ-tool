@@ -150,15 +150,20 @@ def video_from_site(site: VideoSite, identifier: str, canonical: bool = True) ->
     except Exception as e:
         logging.warning("Failed to fetch info from " + site.value)
         logging.debug("Detailed exception info: ", exc_info=e)
-        return Video(site, identifier, "", 0, datetime.fromtimestamp(0))
+        v = None
     if not v:
-        return None
+        return Video(site, identifier, "", 0, datetime.fromtimestamp(0))
     v.canonical = canonical
     return v
 
 
 def str_to_date(date: str) -> datetime:
+    if 'T' in date:
+        date = date[:date.find('T')]
     date = date.split("-")
+    if len(date) != 3:
+        logging.warning("Invalid date, using epoch time 0 instead.")
+        return datetime.fromtimestamp(0)
     year = int(date[0])
     month = int(date[1])
     day = int(date[2])

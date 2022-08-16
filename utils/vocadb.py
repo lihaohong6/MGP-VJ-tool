@@ -1,6 +1,7 @@
 import json
 import logging
 import urllib
+from datetime import datetime
 from pathlib import Path
 from typing import Union, List, Dict, Optional
 
@@ -11,7 +12,7 @@ from config.config import get_config, get_output_path
 from models.color import ColorScheme
 from models.creators import Person, Creators, role_transform
 from models.song import Song, Image, get_manual_lyrics, Lyrics
-from models.video import Video, VideoSite, video_from_site, get_video_bilibili
+from models.video import Video, VideoSite, video_from_site, get_video_bilibili, str_to_date
 from utils import string, japanese
 from utils.at_wiki import get_chinese_lyrics, get_japanese_lyrics
 from utils.helpers import prompt_choices
@@ -79,7 +80,7 @@ def parse_creators(artists: list, artist_string: str) -> Creators:
     return Creators(producers, vocalists, staffs)
 
 
-def parse_videos(videos: list) -> List[Video]:
+def parse_videos(videos: list, date_fallback: datetime = datetime.fromtimestamp(0)) -> List[Video]:
     service_to_site: dict = {
         'NicoNicoDouga': VideoSite.NICO_NICO,
         'Youtube': VideoSite.YOUTUBE
@@ -92,6 +93,8 @@ def parse_videos(videos: list) -> List[Video]:
             # FIXME: only one video per site allowed for now
             video = video_from_site(service_to_site.pop(service), url)
             if video:
+                if video.uploaded and video.uploaded.year < 2000:
+                    video.uploaded = date_fallback
                 result.append(video)
     return result
 
@@ -144,7 +147,10 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
     if get_config().wikitext.furigana_local:
         lyrics_ja = japanese.furigana_local(lyrics_ja)
     lyrics.lyrics_jap = lyrics_ja
-    videos = parse_videos(response['pvs'])
+    date_fallback = datetime.fromtimestamp(0)
+    if 'song' in response:
+        date_fallback = str_to_date(response['song']['publishDate'])
+    videos = parse_videos(response['pvs'], date_fallback)
     video_bilibili = get_video_bilibili()
     if video_bilibili:
         videos.append(video_bilibili)
