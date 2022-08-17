@@ -77,7 +77,7 @@ def is_absolute_directory(d: str) -> Optional[Path]:
     p = platform.system()
     if p == 'Windows':
         match = re.search("[A-Z]:\\\\", d)
-        if match.start() == 0:
+        if match and match.start() == 0:
             return Path(d)
         return None
     # posix
