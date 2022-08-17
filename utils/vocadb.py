@@ -127,26 +127,30 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
     creators: Creators = parse_creators(response['artists'], response['artistString'])
     lyricsList = response['lyricsFromParents']
     producer_temp = creators.producers[0].name if len(creators.producers) > 0 else ""
-    if len(lyricsList) > 0:
-        lyrics_ja = get_lyrics(response['lyricsFromParents'][0]['id'])
+    if get_config().wikitext.no_lyrics:
+        lyrics = Lyrics(translator="", source_name="VOCALOID中文歌词wiki", source_url="",
+                        lyrics_jap="", lyrics_chs="")
     else:
-        logging.warning("Lyrics not found on vocadb.")
-        lyrics_ja = get_japanese_lyrics(name_ja, producer_temp)
-    lyrics = get_chinese_lyrics(song_name, producer_temp)
-    if lyrics is None:
-        lyrics = Lyrics()
-        if not get_config().wikitext.lyrics_chs_fail_fast:
-            choice = prompt_choices("Supply Chinese translation manually?",
-                                    ["Sure.", "No."])
-            if choice == 1:
-                lyrics = get_manual_lyrics()
-    if not is_empty(lyrics.lyrics_jap):
-        lyrics_ja = lyrics.lyrics_jap
-    if get_config().wikitext.process_lyrics_jap:
-        lyrics_ja = string.process_lyrics_jap(lyrics_ja)
-    if get_config().wikitext.furigana_local:
-        lyrics_ja = japanese.furigana_local(lyrics_ja)
-    lyrics.lyrics_jap = lyrics_ja
+        if len(lyricsList) > 0:
+            lyrics_ja = get_lyrics(response['lyricsFromParents'][0]['id'])
+        else:
+            logging.warning("Lyrics not found on vocadb.")
+            lyrics_ja = get_japanese_lyrics(name_ja, producer_temp)
+        lyrics = get_chinese_lyrics(song_name, producer_temp)
+        if lyrics is None:
+            lyrics = Lyrics()
+            if not get_config().wikitext.lyrics_chs_fail_fast:
+                choice = prompt_choices("Supply Chinese translation manually?",
+                                        ["Sure.", "No."])
+                if choice == 1:
+                    lyrics = get_manual_lyrics()
+        if not is_empty(lyrics.lyrics_jap):
+            lyrics_ja = lyrics.lyrics_jap
+        if get_config().wikitext.process_lyrics_jap:
+            lyrics_ja = string.process_lyrics_jap(lyrics_ja)
+        if get_config().wikitext.furigana_local:
+            lyrics_ja = japanese.furigana_local(lyrics_ja)
+        lyrics.lyrics_jap = lyrics_ja
     date_fallback = datetime.fromtimestamp(0)
     if 'song' in response:
         date_fallback = str_to_date(response['song']['publishDate'])

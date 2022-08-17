@@ -34,6 +34,7 @@ class WikitextConfig(yaml.YAMLObject):
     process_lyrics_jap: bool = True
     furigana_local: bool = True
     furigana_all: bool = True
+    no_lyrics: bool = False
     lyrics_chs_fail_fast: bool = True
     uploader_note: bool = False
     producer_template_and_cat: bool = True

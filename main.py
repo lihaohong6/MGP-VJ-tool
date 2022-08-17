@@ -137,7 +137,7 @@ def create_song(song: Song):
 
 def create_lyrics(lyrics: Lyrics):
     lyrics_chs = lyrics.lyrics_chs
-    chs_exist = not is_empty(lyrics_chs)
+    chs_exist = lyrics_chs is not None
     if chs_exist:
         translation_notice = f"*翻译：{assert_str_exists(lyrics.translator)}"
         if not is_empty(lyrics.source_name) or not is_empty(lyrics.source_url):
@@ -145,7 +145,7 @@ def create_lyrics(lyrics: Lyrics):
                                   f"{assert_str_exists(lyrics.source_name)}]</ref>"
     else:
         translation_notice = ""
-    has_roma = not is_empty(lyrics.lyrics_roma)
+    has_roma = lyrics.lyrics_roma is not None
     return f"""== 歌词 ==
 {translation_notice}
 {"{{LyricsKai/Roma/button}}" if has_roma else ""}

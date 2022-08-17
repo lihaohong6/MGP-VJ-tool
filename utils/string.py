@@ -25,7 +25,7 @@ def datetime_to_ymd(u: datetime) -> str:
 
 
 def assert_str_exists(s: str) -> str:
-    return s if not is_empty(s) else "ERROR!"
+    return s if not is_empty(s) else ""
 
 
 def split_number(num: int) -> str:
