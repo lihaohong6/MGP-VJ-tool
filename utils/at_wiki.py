@@ -8,7 +8,7 @@ from typing import Tuple, List, Optional
 from config import data
 from config.config import get_config
 from models.song import Lyrics
-from utils.helpers import prompt_response
+from utils.helpers import prompt_response, http_get
 from utils.string import is_empty
 
 
@@ -72,7 +72,7 @@ def get_at_wiki_body(name: str, urls: List[str], lang: str, producer: str) -> Op
     try:
         found = None
         for url in urls:
-            soup = BeautifulSoup(requests.get(url).text, "html.parser")
+            soup = BeautifulSoup(http_get(url, use_proxy=True).text, "html.parser")
             result_list = soup.find("div", {"id": "wikibody"}).find("ul")
             if result_list is None:
                 continue
@@ -84,7 +84,7 @@ def get_at_wiki_body(name: str, urls: List[str], lang: str, producer: str) -> Op
         if found is None:
             return None
         logging.debug("At wiki url " + found)
-        soup = BeautifulSoup(requests.get(found).text, "html.parser")
+        soup = BeautifulSoup(http_get(found, use_proxy=True).text, "html.parser")
         res = parse_body(name, soup.find("div", {"id": "wikibody"}).text)
         translator = [s for s in res[0] if s[0] == "翻译" or s[0] == "翻譯"]
         if len(translator) == 0:

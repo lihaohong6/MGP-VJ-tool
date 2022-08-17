@@ -1,6 +1,9 @@
 import math
 from typing import Union, Callable, List
 
+import requests
+
+from config.config import get_config
 from utils.save_input import save_input
 from utils.string import is_empty
 
@@ -65,3 +68,14 @@ def prompt_multiline(prompt: str, terminator: Union[Callable[[str], bool], str] 
         if auto_strip:
             s = s.strip()
         res.append(s)
+
+
+def http_get(url: str, use_proxy: bool, **kwargs):
+    if use_proxy and get_config().proxies:
+        proxies = {
+            'https': get_config().proxies,
+            'http': get_config().proxies
+        }
+    else:
+        proxies = None
+    return requests.get(url, proxies=proxies, **kwargs)

@@ -11,10 +11,11 @@ from PIL import Image, ImageOps, ImageTk
 from config.config import get_config, get_output_path
 from models.color import Color, get_text_color, ColorScheme, black, white
 from models.video import Video, VideoSite
+from utils.helpers import http_get
 
 
 def download_file(url: str, target: Union[str, Path]) -> bool:
-    with requests.get(url, stream=True) as r:
+    with http_get(url, stream=True, use_proxy=True) as r:
         r.raise_for_status()
         with open(target, 'wb') as f:
             for chunk in r.iter_content(chunk_size=8192):

@@ -7,7 +7,7 @@ from typing import Union, List
 import requests
 from bs4 import BeautifulSoup
 
-from utils.helpers import prompt_response, prompt_choices
+from utils.helpers import prompt_response, prompt_choices, http_get
 from utils.string import split_number
 
 
@@ -58,7 +58,7 @@ def get_nc_info(vid: str) -> Video:
     if vid.find("nicovideo") != -1:
         vid = vid[vid.rfind("/") + 1:]
     url = f"https://www.nicovideo.jp/watch/{vid}"
-    result = requests.get(url).text
+    result = http_get(url, use_proxy=True).text
     soup = BeautifulSoup(result, "html.parser")
     date = datetime.fromtimestamp(0)
     views = 0
@@ -86,7 +86,7 @@ def get_bb_info(vid: str) -> Video:
     if "av" in vid:
         vid = av_to_bv(vid)
     url = f"https://api.bilibili.com/x/web-interface/view?bvid={vid}"
-    response = json.loads(requests.get(url).text)
+    response = json.loads(http_get(url, use_proxy=False).text)
     epoch_time = int(response['data']['pubdate'])
     date = datetime.fromtimestamp(epoch_time)
     # remove extra information to be in sync with YT and Nico
@@ -106,7 +106,7 @@ def yt_vid_from_url(vid: str) -> str:
 def get_yt_info(vid: str) -> Union[Video, None]:
     vid = yt_vid_from_url(vid)
     url = 'https://www.youtube.com/watch?v=' + vid
-    text = requests.get(url).text
+    text = http_get(url, use_proxy=True).text
     soup = BeautifulSoup(text, "html.parser")
     interaction = soup.select_one('meta[itemprop="interactionCount"][content]')
     views = int(interaction['content'])

@@ -15,7 +15,7 @@ from models.song import Song, Image, get_manual_lyrics, Lyrics
 from models.video import Video, VideoSite, video_from_site, get_video_bilibili, str_to_date
 from utils import string, japanese
 from utils.at_wiki import get_chinese_lyrics, get_japanese_lyrics
-from utils.helpers import prompt_choices
+from utils.helpers import prompt_choices, http_get
 from utils.image import download_thumbnail, pick_color
 from utils.name_converter import name_shorten
 from utils.string import split, is_empty
@@ -121,7 +121,7 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
         return None
     logging.info(f"Fetching song details with id {song_id} from vocadb.")
     url = f"https://vocadb.net/api/songs/{song_id}/details"
-    response = json.loads(requests.get(url).text)
+    response = json.loads(http_get(url, use_proxy=True).text)
     name_ja = song_name
     name_other = [n.strip() for n in utils.string.split(",")]
     creators: Creators = parse_creators(response['artists'], response['artistString'])
@@ -175,14 +175,14 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
 def get_lyrics(lyrics_id: str) -> str:
     logging.info("Getting Japanese lyrics from vocadb.")
     url = f"https://vocadb.net/api/songs/lyrics/{lyrics_id}?v=25"
-    response = json.loads(requests.get(url).text)
+    response = json.loads(http_get(url, use_proxy=True).text)
     return response['value']
 
 
 def search_with_url(url: str, name: str) -> list:
     logging.debug("Search url " + url)
     try:
-        response = json.loads(requests.get(url).text)['items']
+        response = json.loads(http_get(url, use_proxy=True).text)['items']
     except Exception as e:
         logging.error("An error occurred while searching on atwiki with url " + url)
         logging.debug("Detailed error: ", exc_info=e)

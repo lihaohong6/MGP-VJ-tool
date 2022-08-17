@@ -63,6 +63,7 @@ class Config(yaml.YAMLObject):
     save_to_file: str = None
     vocadb_manual: bool = False
     output_dir: str = ""
+    proxies: Optional[str] = None
     wikitext: WikitextConfig = WikitextConfig()
     color: ColorConfig = ColorConfig()
     image: ImageConfig = ImageConfig()
@@ -87,16 +88,8 @@ def is_absolute_directory(d: str) -> Optional[Path]:
     return None
 
 
-
-
-def load_config(filename: Union[str, Path]):
-    global config_xxx, program_output_path
-    try:
-        with open(filename, mode="r", encoding="UTF-8") as f:
-            config_xxx = yaml.load(f.read(), Loader=Loader)
-    except Exception as e:
-        logging.debug(e, exc_info=e)
-        logging.info("Cannot read config file. Falling back to default config.")
+def handle_output_dir():
+    global program_output_path
     if is_empty(get_config().output_dir):
         config_xxx.output_dir = "output"
     p = is_absolute_directory(get_config().output_dir)
@@ -107,6 +100,18 @@ def load_config(filename: Union[str, Path]):
         program_output_path = application_path.joinpath(get_config().output_dir)
         logging.info("Relative path detected. Writing output to " + str(get_output_path().resolve()))
     program_output_path.mkdir(exist_ok=True, parents=True)
+
+
+def load_config(filename: Union[str, Path]):
+    global config_xxx
+    try:
+        with open(filename, mode="r", encoding="UTF-8") as f:
+            config_xxx = yaml.load(f.read(), Loader=Loader)
+    except Exception as e:
+        logging.debug(e, exc_info=e)
+        logging.warning("Cannot read config file. Falling back to default config.")
+    handle_output_dir()
+    config_xxx.proxies = None if is_empty(config_xxx.proxies) else config_xxx.proxies
 
 
 def get_config() -> Config:
