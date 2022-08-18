@@ -54,9 +54,14 @@ def av_to_bv(av: str) -> str:
     return ''.join(r)
 
 
-def get_nc_info(vid: str) -> Video:
+def parse_nc_url(vid: str) -> str:
     if vid.find("nicovideo") != -1:
         vid = vid[vid.rfind("/") + 1:]
+    return vid
+
+
+def get_nc_info(vid: str) -> Video:
+    vid = parse_nc_url(vid)
     url = f"https://www.nicovideo.jp/watch/{vid}"
     result = http_get(url, use_proxy=True).text
     soup = BeautifulSoup(result, "html.parser")
@@ -96,7 +101,7 @@ def get_bb_info(vid: str) -> Video:
     return Video(VideoSite.BILIBILI, vid, url, views, date, pic)
 
 
-def yt_vid_from_url(vid: str) -> str:
+def parse_yt_url(vid: str) -> str:
     if vid.find("youtube.") != -1:
         return vid[vid.find("=") + 1:]
     elif vid.find("youtu.be") != -1:
@@ -104,7 +109,7 @@ def yt_vid_from_url(vid: str) -> str:
 
 
 def get_yt_info(vid: str) -> Union[Video, None]:
-    vid = yt_vid_from_url(vid)
+    vid = parse_yt_url(vid)
     url = 'https://www.youtube.com/watch?v=' + vid
     text = http_get(url, use_proxy=True).text
     soup = BeautifulSoup(text, "html.parser")
@@ -152,6 +157,7 @@ def video_from_site(site: VideoSite, identifier: str, canonical: bool = True) ->
         logging.debug("Detailed exception info: ", exc_info=e)
         v = None
     if not v:
+        identifier = parse_yt_url(identifier) if site == VideoSite.YOUTUBE else parse_nc_url(identifier)
         return Video(site, identifier, "", 0, datetime.fromtimestamp(0))
     v.canonical = canonical
     return v
