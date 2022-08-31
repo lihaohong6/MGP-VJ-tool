@@ -145,7 +145,7 @@ def create_lyrics(lyrics: Lyrics):
                                   f"{assert_str_exists(lyrics.source_name)}]</ref>"
     else:
         translation_notice = ""
-    has_roma = lyrics.lyrics_roma is not None
+    has_roma = not is_empty(lyrics.lyrics_roma)
     return f"""== 歌词 ==
 {translation_notice}
 {"{{LyricsKai/Roma/button}}" if has_roma else ""}
@@ -155,7 +155,7 @@ def create_lyrics(lyrics: Lyrics):
 |containerstyle=background:;
 |original={assert_str_exists(lyrics.lyrics_jap)}
 |translated={lyrics_chs if chs_exist else ''}
-{"|photrans=" + lyrics.lyrics_roma if has_roma else ''}
+{("|photrans=" + lyrics.lyrics_roma) if has_roma else ''}
 }}}}
 """
 
