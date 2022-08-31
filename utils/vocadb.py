@@ -20,15 +20,23 @@ from utils.image import download_thumbnail, pick_color
 from utils.name_converter import name_shorten
 from utils.string import split, is_empty
 
-VOCADB_NARROW = "vocadb.net/api/songs?start=0&getTotalCount=true&maxResults=100" \
-                "&query={}&fields=AdditionalNames%2CThumbUrl&lang=Default&nameMatchMode=Auto" \
-                "&sort=PublishDate" \
-                "&songTypes=Original&childTags=false&artistParticipationStatus=Everything&onlyWithPvs=false"
+VOCADB_SONG_QUERY_URL = "https://vocadb.net/api/songs"
 
-VOCADB_BROAD = "vocadb.net/api/songs?start=0&getTotalCount=true&maxResults=100" \
-               "&query={}&fields=AdditionalNames%2CThumbUrl&lang=Default&nameMatchMode=Auto" \
-               "&sort=PublishDate" \
-               "&childTags=false&artistParticipationStatus=Everything&onlyWithPvs=false"
+PARAMS_BROAD = {
+    'start': 0,
+    'maxResults': 50,
+    'fields': 'None',
+    'lang': 'Default',
+    'nameMatchMode': 'Exact',
+    'sort': 'PublishDate',
+    'childTags': 'false',
+    'artistParticipationStatus': 'Everything',
+    'onlyWithPvs': 'false',
+    'getTotalCount': 'true'
+}
+
+PARAMS_NARROW = {**PARAMS_BROAD,
+                 'songTypes': 'Original'}
 
 
 def parse_creators(artists: list, artist_string: str) -> Creators:
@@ -183,12 +191,14 @@ def get_lyrics(lyrics_id: str) -> str:
     return response['value']
 
 
-def search_with_url(url: str, name: str) -> list:
-    logging.debug("Search url " + url)
+def search_vocadb(name: str, params: dict) -> list:
+    params = {**params,
+              'query': name}
     try:
-        response = json.loads(http_get(url, use_proxy=True).text)['items']
+        response = json.loads(http_get(VOCADB_SONG_QUERY_URL, use_proxy=True, params=params).text)
+        response = response['items']
     except Exception as e:
-        logging.error("An error occurred while searching on atwiki with url " + url)
+        logging.error("An error occurred while searching on Vocadb")
         logging.debug("Detailed error: ", exc_info=e)
         return []
     response = [song for song in response if song['defaultName'] == name]
@@ -196,13 +206,11 @@ def search_with_url(url: str, name: str) -> list:
 
 
 def search_narrow(name: str) -> list:
-    url = VOCADB_NARROW.format(urllib.parse.quote(name))
-    return search_with_url("https://" + url, name)
+    return search_vocadb(name, PARAMS_NARROW)
 
 
 def search_broad(name: str) -> list:
-    url = VOCADB_BROAD.format(urllib.parse.quote(name))
-    return search_with_url("https://" + url, name)
+    return search_vocadb(name, PARAMS_BROAD)
 
 
 def search_song_id(name: str) -> Union[str, None]:
