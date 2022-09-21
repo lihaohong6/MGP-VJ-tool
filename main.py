@@ -103,7 +103,7 @@ def create_intro(song: Song):
             f"""是由{join_string(song.creators.producers_str()[:1],
                                inner_wrapper=('[[', ']]'),
                                mapper=auto_lj)}""" +
-            videos_to_str2(videos) + "的[[VOCALOID]]日文原创歌曲。" +
+            videos_to_str2(videos) + "的[[VOCALOID]]日语原创歌曲。" +
             f"""由{join_string(song.creators.vocalists_str(),
                               outer_wrapper=('[[', ']]'),
                               mapper=name_to_chinese)}演唱。""" +
