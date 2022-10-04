@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from datetime import datetime
 from enum import Enum
 from typing import Union, List
@@ -83,13 +84,18 @@ def get_nc_info(vid: str) -> Video:
     return Video(VideoSite.NICO_NICO, vid, url, views, date, thumb)
 
 
+def get_bv(vid: str) -> str:
+    search_bv = re.search("BV[0-9a-zA-Z]+", vid, re.IGNORECASE)
+    if search_bv is not None:
+        return search_bv.group(0)
+    search_av = re.search("av[0-9]+", vid, re.IGNORECASE)
+    if search_av is not None:
+        return av_to_bv(search_av.group(0))
+    return vid
+
+
 def get_bb_info(vid: str) -> Video:
-    if vid.find("bilibili") != -1:
-        vid = vid[vid.rfind("/") + 1:]
-        if vid.find("?") != -1:
-            vid = vid[:vid.find("?")]
-    if "av" in vid:
-        vid = av_to_bv(vid)
+    vid = get_bv(vid)
     url = f"https://api.bilibili.com/x/web-interface/view?bvid={vid}"
     response = json.loads(http_get(url, use_proxy=False).text)
     epoch_time = int(response['data']['pubdate'])
