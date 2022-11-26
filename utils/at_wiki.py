@@ -91,7 +91,7 @@ def get_at_wiki_body(name: str, urls: List[str], lang: str, producer: str) -> Op
             translator = "ERROR!"
         else:
             translator = translator[0][1]
-        return Lyrics(staff=res[0], source_name="VOCALOID中文wiki", source_url=shorten_url(found), lyrics_chs=res[1],
+        return Lyrics(staff=res[0], source_name="VOCALOID中文歌词wiki", source_url=shorten_url(found), lyrics_chs=res[1],
                       translator=translator)
     except Exception as e:
         logging.error(e)
