@@ -193,7 +193,7 @@ def create_end(song: Song):
     vocalist_cat = join_string(song.creators.vocalists_str(),
                                deliminator="", mapper=name_to_cat,
                                outer_wrapper=('[[分类:', '歌曲]]\n'))
-    return (producer_templates + """== 注释与外部链接 ==
+    return (producer_templates + """== 注释 ==
 <references/>
 [[分类:日本音乐作品]]
 [[分类:使用VOCALOID的歌曲]]\n""" + vocalist_cat + producer_cats)
