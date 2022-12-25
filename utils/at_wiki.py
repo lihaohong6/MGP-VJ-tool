@@ -85,6 +85,9 @@ def get_at_wiki_body(name: str, urls: List[str], lang: str, producer: str) -> Op
             return None
         logging.debug("At wiki url " + found)
         soup = BeautifulSoup(http_get(found, use_proxy=True).text, "html.parser")
+        # remove last modify message from body
+        for elem in soup.find_all("div", attrs={'class': 'atwiki-lastmodify'}):
+            elem.decompose()
         res = parse_body(name, soup.find("div", {"id": "wikibody"}).text)
         translator = [s for s in res[0] if s[0] == "翻译" or s[0] == "翻譯"]
         if len(translator) == 0:
@@ -100,6 +103,13 @@ def get_at_wiki_body(name: str, urls: List[str], lang: str, producer: str) -> Op
 
 
 def parse_body(name: str, text: str) -> (List[Tuple[str, str]], str):
+    """
+    Parse the body text in atwiki to remove extraneous things and
+    extract artist roles and names.
+    :param name: Name of the song.
+    :param text: Main text to be parsed.
+    :return: A tuple
+    """
     index_comment = text.find("\nコメント\n")
     if index_comment != -1:
         text = text[:index_comment]
