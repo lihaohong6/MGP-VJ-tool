@@ -7,6 +7,7 @@ from typing import Tuple, List, Optional
 
 from config import data
 from config.config import get_config
+from i18n.i18n import _
 from models.song import Lyrics
 from utils.helpers import prompt_response, http_get
 from utils.string import is_empty
@@ -129,13 +130,13 @@ def parse_body(name: str, text: str) -> (List[Tuple[str, str]], str):
 
 
 def get_japanese_lyrics(name: str, producer: str = "") -> str:
-    logging.info("Trying to fetch Japanese lyrics from atwiki.")
+    logging.info(_("jap_atwiki"))
     url_jap = "https://w.atwiki.jp/hmiku/search?andor=and&keyword={}&search_field=source"
     res = get_at_wiki_body(name, [url_jap.format(name + "+" + producer), url_jap.format(name)], "Japanese", producer)
     return res.lyrics_chs if res else ""
 
 
 def get_chinese_lyrics(name: str, producer: str = "") -> Optional[Lyrics]:
-    logging.info("Trying to fetch Chinese lyrics from atwiki.")
+    logging.info(_("chs_atwiki"))
     url_chs = "https://w.atwiki.jp/vocaloidchly/search?andor=and&keyword={}&search_field=source"
     return get_at_wiki_body(name, [url_chs.format(name + '+' + producer), url_chs.format(name)], "Chinese", producer)

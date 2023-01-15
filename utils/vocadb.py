@@ -9,6 +9,7 @@ import requests
 
 import utils.string
 from config.config import get_config, get_output_path
+from i18n.i18n import _
 from models.color import ColorScheme
 from models.creators import Person, Creators, role_transform
 from models.song import Song, Image, get_manual_lyrics, Lyrics
@@ -148,7 +149,7 @@ def get_song_by_name(song_name: str, name_chs: str) -> Union[Song, None]:
         if lyrics is None:
             lyrics = Lyrics()
             if not get_config().wikitext.lyrics_chs_fail_fast:
-                choice = prompt_choices("Supply Chinese translation manually?",
+                choice = prompt_choices(_("manual_trans"),
                                         ["Sure.", "No."])
                 if choice == 1:
                     lyrics = get_manual_lyrics()
@@ -219,26 +220,26 @@ def search_song_id(name: str) -> Union[str, None]:
     narrow: bool = True
     if len(response) == 0:
         narrow = False
-        logging.info("No result for narrow searching. Now trying broad search.")
+        logging.info(_("narrow_to_broad"))
         response = search_broad(name)
     if len(response) == 0:
-        logging.error("No entry found in VOCADB.")
+        logging.error(_("no_vocadb"))
         return None
     while len(response) > 1 or (len(response) == 1 and get_config().vocadb_manual):
         options = [f"{song['defaultName']} by {song['artistString']}"
                    for song in response]
         options.append("None of the above.")
-        result = prompt_choices("Multiple results found. Choose the correct one.", options)
+        result = prompt_choices(_("multiple_vocadb_results"), options)
         if result == len(options):
             if narrow:
                 narrow = False
-                logging.info("Performing a broader search...")
+                logging.info(_("broader_search"))
                 response = search_broad(name)
                 continue
             else:
-                logging.error("No entry found in VOCADB.")
+                logging.error(_("no_vocadb"))
                 return None
         return response[result - 1]['id']
     r = response[0]['id']
-    logging.info(f"Using {response[0]['defaultName']} by {response[0]['artistString']}")
+    logging.info(f"Using {response[0]['defaultName']} 'by' {response[0]['artistString']}")
     return r

@@ -12,6 +12,7 @@ import requests
 from bs4 import BeautifulSoup
 from requests_futures.sessions import FuturesSession
 
+from i18n.i18n import _
 from models.creators import Person
 from utils.string import is_empty
 
@@ -64,12 +65,12 @@ async def producer_checker(producers: List[Person], base_url: str, predicate: Ca
 
 
 async def get_producer_templates(producers: List[Person]) -> List[str]:
-    logging.info("Fetching producer templates for " + ", ".join([p.name for p in producers]))
+    logging.info(_("producer_template") + ", ".join([p.name for p in producers]))
     return await producer_checker(producers, BASE_TEMPLATE, producer_template_exists)
 
 
 async def get_producer_cats(producers: List[Person]) -> List[str]:
-    logging.info("Fetching producer categories for " + ", ".join([p.name for p in producers]))
+    logging.info(_("producer_cat") + ", ".join([p.name for p in producers]))
     return await producer_checker(producers, BASE_CAT, producer_cat_exists)
 
 

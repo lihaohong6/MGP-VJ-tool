@@ -10,22 +10,9 @@ from typing import Union, Optional
 import yaml
 from yaml import Loader
 
+from config.path_config import application_path, program_output_path
+from i18n.i18n import _, set_language
 from utils.string import is_empty
-
-if getattr(sys, 'frozen', False):
-    # The user needs to edit some files, so can't use _MEIPASS
-    application_path = Path(os.path.dirname(sys.executable))
-else:
-    application_path = Path(os.path.dirname(os.path.abspath(__file__)))
-    application_path = application_path.joinpath("..")
-
-# os.environ['PYWIKIBOT_DIR'] = str(application_path.absolute())
-# this will be changed later when the config is loaded
-program_output_path: Path = application_path.joinpath("output")
-
-
-def get_output_path() -> Path:
-    return program_output_path
 
 
 @dataclass
@@ -61,6 +48,7 @@ class ImageConfig(yaml.YAMLObject):
 @dataclass
 class Config(yaml.YAMLObject):
     yaml_tag = u'!Config'
+    lang: str = 'en'
     save_to_file: str = None
     vocadb_manual: bool = False
     output_dir: str = ""
@@ -96,10 +84,10 @@ def handle_output_dir():
     p = is_absolute_directory(get_config().output_dir)
     if p is not None:
         program_output_path = p
-        logging.info("Absolute path detected. Writing output to " + str(program_output_path.resolve()))
+        logging.info(_("abs_path") + str(program_output_path.resolve()))
     else:
         program_output_path = application_path.joinpath(get_config().output_dir)
-        logging.info("Relative path detected. Writing output to " + str(get_output_path().resolve()))
+        logging.info(_("rel_path") + str(get_output_path().resolve()))
     program_output_path.mkdir(exist_ok=True, parents=True)
 
 
@@ -111,9 +99,14 @@ def load_config(filename: Union[str, Path]):
     except Exception as e:
         logging.debug(e, exc_info=e)
         logging.warning("Cannot read config file. Falling back to default config.")
+    set_language(config_xxx.lang)
     handle_output_dir()
     config_xxx.proxies = None if is_empty(config_xxx.proxies) else config_xxx.proxies
 
 
 def get_config() -> Config:
     return config_xxx
+
+
+def get_output_path() -> Path:
+    return program_output_path

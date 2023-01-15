@@ -1,5 +1,7 @@
 --- !Config
 save_to_file: ""
+# 选择程序语言。zh为中文，en是英文。注意：部分内容没有被汉化。
+lang: "zh"
 # 当vocadb有重名歌曲，且程序默认选择错误的曲目时启用此项
 vocadb_manual: false
 # 自定义输出文件夹，如果留空则让程序自行选择默认文件夹
@@ -34,7 +36,7 @@ color: !ColorConfig
 image: !ImageConfig
   # 下载封面
   download_cover: false
-  # 下载所有封面然后选择分辨率最大的（不建议开启；niconico的封面大但是很糊）
+  # 下载所有视频网站的封面
   download_all: false
   # 自动裁剪封面黑边
   crop: true

@@ -8,6 +8,7 @@ from typing import Union, List
 import requests
 from bs4 import BeautifulSoup
 
+from i18n.i18n import _
 from utils.helpers import prompt_response, prompt_choices, http_get
 from utils.string import split_number
 
@@ -154,12 +155,12 @@ def view_count_from_site(video: Video) -> str:
 
 
 def video_from_site(site: VideoSite, identifier: str, canonical: bool = True) -> Union[Video, None]:
-    logging.info(f"Fetching video from {site.value}")
+    logging.info('Fetching video from ' + site.value)
     logging.debug(f"Video identifier: {identifier}")
     try:
         v = info_func[site](identifier)
     except Exception as e:
-        logging.warning("Failed to fetch info from " + site.value)
+        logging.warning(_("fail_fetch") + site.value)
         logging.debug("Detailed exception info: ", exc_info=e)
         v = None
     if not v:
@@ -174,7 +175,7 @@ def str_to_date(date: str) -> datetime:
         date = date[:date.find('T')]
     date = date.split("-")
     if len(date) != 3:
-        logging.warning("Invalid date, using epoch time 0 instead.")
+        logging.warning(_("invalid_date"))
         return datetime.fromtimestamp(0)
     year = int(date[0])
     month = int(date[1])
@@ -183,11 +184,11 @@ def str_to_date(date: str) -> datetime:
 
 
 def get_video_bilibili() -> Union[Video, None]:
-    bv = prompt_response("Bilibili link?")
+    bv = prompt_response(_("bilibili_link"))
     if bv.isspace() or len(bv) == 0:
         return None
     if bv:
-        bv_canonical = prompt_choices("BV canonical?", ["Yes", "No"])
+        bv_canonical = prompt_choices(_("bv_canonical"), ["Yes", "No"])
         bv_canonical = bv_canonical == 1
         return video_from_site(VideoSite.BILIBILI, bv, bv_canonical)
 

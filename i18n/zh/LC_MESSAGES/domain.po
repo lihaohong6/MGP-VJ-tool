@@ -1,0 +1,114 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-07 05:12-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: main.py:219
+msgid "uploader_note"
+msgstr "填写投稿文？"
+
+#: main.py:222
+msgid "uploader_note_jap"
+msgstr "输入日语版投稿文。结束后请输入空行。"
+
+#: main.py:225
+msgid "uploader_note_chs"
+msgstr "输入中文版投稿文。结束后请输入空行。"
+
+#: main.py:243
+msgid "name_original"
+msgstr "歌曲原名？"
+
+#: main.py:244
+msgid "name_trans"
+msgstr "歌曲翻译后的名字？如果没有译名请留空。"
+
+#: main.py:249
+msgid "only_vocadb"
+msgstr "无法从vocadb以外的网站获取信息。"
+
+#: main.py:265
+msgid "prog_end"
+msgstr "程序已结束。请前往输出文件夹查看结果。"
+
+#: main.py:279
+msgid "err_unexpected"
+msgstr "出现了一个预期外的错误。请前往https://github.com/syccxcc/MGP-VJ-tool/issues 向作者提交错误信息。"
+
+#: main.py:281
+msgid "enter_exit"
+msgstr "按回车键退出。"
+
+#: config/config.py:100
+msgid "abs_path"
+msgstr "发现绝对路径。程序的运行结果将被输出至"
+
+#: config/config.py:103
+msgid "rel_path"
+msgstr "发现相对路径。程序的运行结果将被输出至"
+
+#: models/video.py:163
+msgid "fail_fetch"
+msgstr "无法从以下网站获取信息："
+
+#: models/video.py:178
+msgid "invalid_date"
+msgstr "发现非法日期。"
+
+#: models/video.py:187
+msgid "bilibili_link"
+msgstr "b站投稿链接（或BV号）是？"
+
+#: models/video.py:191
+msgid "bv_canonical"
+msgstr "B站投稿是P主自己提交的吗？"
+
+#: utils/at_wiki.py:133
+msgid "jap_atwiki"
+msgstr "正在从atwiki获取日语歌词"
+
+#: utils/at_wiki.py:140
+msgid "chs_atwiki"
+msgstr "正在从atwiki获取中文歌词"
+
+#: utils/mgp.py:68
+msgid "producer_template"
+msgstr "正在获取以下P主的大家族模板："
+
+#: utils/mgp.py:73
+msgid "producer_cat"
+msgstr "正在获取以下P主的作品分类："
+
+#: utils/vocadb.py:152
+msgid "manual_trans"
+msgstr "是否手动输入中文翻译？"
+
+#: utils/vocadb.py:223
+msgid "narrow_to_broad"
+msgstr "简单搜索后没有任何结果。现在在尝试增加搜索广度。"
+
+#: utils/vocadb.py:226 utils/vocadb.py:240
+msgid "no_vocadb"
+msgstr "无法在VOCADB上找到对应的歌曲。"
+
+#: utils/vocadb.py:232
+msgid "multiple_vocadb_results"
+msgstr "找到多个结果，请选择正确的结果。"
+
+#: utils/vocadb.py:236
+msgid "broader_search"
+msgstr "现在在尝试增加搜索广度。"

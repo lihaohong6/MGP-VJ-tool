@@ -9,6 +9,7 @@ import requests
 from PIL import Image, ImageOps, ImageTk
 
 from config.config import get_config, get_output_path
+from i18n.i18n import _
 from models.color import Color, get_text_color, ColorScheme, black, white
 from models.video import Video, VideoSite
 from utils.helpers import http_get
@@ -193,7 +194,5 @@ def download_thumbnail(videos: List[Video], filename: str) -> Optional[Tuple[Pat
     target.unlink(missing_ok=True)
     if len(candidates) == 0:
         return None
-    elif len(candidates) == 1:
-        return candidates[0][0].rename(target), candidates[0][1]
-    candidates = sorted([(c, image_size(c[0])) for c in candidates], key=lambda c: c[1])
-    return candidates[-1][0][0].rename(target), candidates[-1][0][1]
+    return candidates[0][0].rename(target), candidates[0][1]
+    # candidates = sorted([(c, image_size(c[0])) for c in candidates], key=lambda c: c[1])

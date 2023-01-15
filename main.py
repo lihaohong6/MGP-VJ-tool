@@ -21,6 +21,8 @@ from utils.string import auto_lj, is_empty, datetime_to_ymd, assert_str_exists, 
 from utils.upload import upload_image
 from utils.vocadb import get_song_by_name
 
+from i18n.i18n import _
+
 
 def get_song_names(song: Song) -> List[str]:
     # FIXME: disable name_other?
@@ -124,10 +126,10 @@ def create_song(song: Song):
                          for index, g in enumerate(groups)]
     if song.colors:
         color_scheme = song.colors
-        color = f"|lbgcolor={color_scheme.background.to_hex()}\n" \
-                f"|ltcolor={color_scheme.text.to_hex()}\n"
+        color = f"|lbgcolor = {color_scheme.background.to_hex()}\n" \
+                f"|ltcolor = {color_scheme.text.to_hex()}\n"
     else:
-        color = "|lbgcolor=#000\n|ltcolor=white\n"
+        color = "|lbgcolor = #000\n|ltcolor = white\n"
     return (f"== 歌曲 ==\n"
             "{{VOCALOID Songbox Introduction\n"
             + color +
@@ -153,10 +155,11 @@ def create_lyrics(lyrics: Lyrics):
 |lstyle=color:;
 |rstyle=color:;
 |containerstyle=background:;
-|original={assert_str_exists(lyrics.lyrics_jap)}
-|translated={lyrics_chs if chs_exist else ''}
-{("|photrans=" + lyrics.lyrics_roma) if has_roma else ''}
-}}}}
+|original=
+{assert_str_exists(lyrics.lyrics_jap).strip()}
+|translated=
+{lyrics_chs.strip() if chs_exist else ''}
+{("|photrans=" + lyrics.lyrics_roma) if has_roma else ''}}}}}
 """
 
 
@@ -214,13 +217,13 @@ def setup_logger():
 def create_uploader_note(song: Song) -> str:
     if not get_config().wikitext.uploader_note:
         return ""
-    response = prompt_choices("Uploader note?", choices=["Yes", "No"])
+    response = prompt_choices(_("uploader_note"), choices=["Yes", "No"])
     if response == 2:
         return ""
-    japanese = prompt_multiline("Input Japanese version. End input with empty line.",
+    japanese = prompt_multiline(_("uploader_note_jap"),
                                 terminator=is_empty)
     japanese = "<br/>".join(japanese)
-    chinese = prompt_multiline("Input Chinese version. End input with empty line",
+    chinese = prompt_multiline(_("uploader_note_chs"),
                                terminator=is_empty)
     chinese = "<br/>".join(chinese)
     return f"""{{{{Cquote|{{{{lj|{japanese}}}}}
@@ -238,13 +241,13 @@ def main():
     setup_save_input(get_config().save_to_file)
     if get_config().image.auto_upload:
         login.main()
-    data.name_japanese = prompt_response("Japanese name?")
-    name_chinese = prompt_response("Chinese name?")
+    data.name_japanese = prompt_response(_("name_original"))
+    name_chinese = prompt_response(_("name_trans"))
     if is_empty(name_chinese):
         name_chinese = data.name_japanese
     song = get_song_by_name(data.name_japanese, name_chinese)
     if not song:
-        raise NotImplementedError("No source of information exists besides VOCADB.")
+        raise NotImplementedError(_("only_vocadb"))
     header = create_header(song)
     uploader_note = create_uploader_note(song)
     intro = create_intro(song)
@@ -260,7 +263,7 @@ def main():
             image = song.image
             upload_image(image.path, filename=image.file_name, song_name=name_chinese,
                          authors=image.creators, source_url=image.source_url)
-    print("Program ended. Go to output folder for result.")
+    print(_("prog_end"))
     webbrowser.open("file://" + str(wikitext_dir.absolute()))
 
 
@@ -274,6 +277,5 @@ if __name__ == '__main__':
     except Exception as e:
         logging.error(traceback.format_exc())
         logging.error(str(e))
-        logging.error("This error is unexpected. "
-                      "Please go to https://github.com/syccxcc/MGP-VJ-tool/issues to report this issue.")
-    input("Press Enter to exit...")
+        logging.error(_("err_unexpected"))
+    input(_("enter_exit"))

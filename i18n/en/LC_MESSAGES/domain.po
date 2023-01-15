@@ -1,0 +1,116 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-07 05:12-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: main.py:219
+msgid "uploader_note"
+msgstr "Uploader note?"
+
+#: main.py:222
+msgid "uploader_note_jap"
+msgstr "Input Japanese version. End input with empty line."
+
+#: main.py:225
+msgid "uploader_note_chs"
+msgstr "Input Chinese version. End input with empty line"
+
+#: main.py:243
+msgid "name_original"
+msgstr "Original name?"
+
+#: main.py:244
+msgid "name_trans"
+msgstr "Translated name? Leave empty if there's no translation. "
+
+#: main.py:249
+msgid "only_vocadb"
+msgstr "No source of information exists besides VOCADB."
+
+#: main.py:265
+msgid "prog_end"
+msgstr "Program ended. Go to output folder for result."
+
+#: main.py:279
+msgid "err_unexpected"
+msgstr ""
+"This error is unexpected. Please go to https://github.com/syccxcc/MGP-VJ-"
+"tool/issues to report this issue."
+
+#: main.py:281
+msgid "enter_exit"
+msgstr "Press Enter to exit..."
+
+#: config/config.py:100
+msgid "abs_path"
+msgstr "Absolute path detected. Writing output to "
+
+#: config/config.py:103
+msgid "rel_path"
+msgstr "Relative path detected. Writing output to "
+
+#: models/video.py:163
+msgid "fail_fetch"
+msgstr "Failed to fetch info from "
+
+#: models/video.py:178
+msgid "invalid_date"
+msgstr "Invalid date, using epoch time 0 instead."
+
+#: models/video.py:187
+msgid "bilibili_link"
+msgstr "Bilibili link?"
+
+#: models/video.py:191
+msgid "bv_canonical"
+msgstr "BV canonical?"
+
+#: utils/at_wiki.py:133
+msgid "jap_atwiki"
+msgstr "Trying to fetch Japanese lyrics from atwiki."
+
+#: utils/at_wiki.py:140
+msgid "chs_atwiki"
+msgstr "Trying to fetch Chinese lyrics from atwiki."
+
+#: utils/mgp.py:68
+msgid "producer_template"
+msgstr "Fetching producer templates for "
+
+#: utils/mgp.py:73
+msgid "producer_cat"
+msgstr "Fetching producer categories for "
+
+#: utils/vocadb.py:152
+msgid "manual_trans"
+msgstr "Supply Chinese translation manually?"
+
+#: utils/vocadb.py:223
+msgid "narrow_to_broad"
+msgstr "No result for narrow searching. Now trying broad search."
+
+#: utils/vocadb.py:226 utils/vocadb.py:240
+msgid "no_vocadb"
+msgstr "No entry found in VOCADB."
+
+#: utils/vocadb.py:232
+msgid "multiple_vocadb_results"
+msgstr "Multiple results found. Choose the correct one."
+
+#: utils/vocadb.py:236
+msgid "broader_search"
+msgstr "Performing a broader search..."
