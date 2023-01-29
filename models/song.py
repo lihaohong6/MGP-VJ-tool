@@ -147,15 +147,23 @@ def get_manual_lyrics() -> Lyrics:
 
     def convert_translation():
         translation_text: str = translation.get("1.0", tk.END).strip()
-        group_length = int(entries['group_length'].get())
-        chs_line = int(entries['chs_line'].get())
-        chs.replace("1.0", tk.END, process_translation(translation_text, group_length, chs_line))
-        if not is_empty(entries['jap_line'].get()):
-            jap_line = int(entries['jap_line'].get())
-            jap.replace("1.0", tk.END, process_translation(translation_text, group_length, jap_line))
-        if not is_empty(entries['roma_line'].get()):
-            roma_line = int(entries['roma_line'].get())
-            roma.replace("1.0", tk.END, process_translation(translation_text, group_length, roma_line))
+        chs_text = entries['chs_line'].get()
+        jap_text = entries['jap_line'].get()
+        roma_text = entries['roma_line'].get()
+        try:
+            group_length = int(entries['group_length'].get())
+            if not is_empty(chs_text):
+                chs_line = int(chs_text)
+                chs.replace("1.0", tk.END, process_translation(translation_text, group_length, chs_line))
+            if not is_empty(jap_text):
+                jap_line = int(jap_text)
+                jap.replace("1.0", tk.END, process_translation(translation_text, group_length, jap_line))
+            if not is_empty(roma_text):
+                roma_line = int(roma_text)
+                roma.replace("1.0", tk.END, process_translation(translation_text, group_length, roma_line))
+        except Exception as e:
+            print(e)
+            print(f"Chs: {chs_text}\nJap: {jap_text}\nRoma: {roma_text}")
 
     convert = tk.Button(buttons, text="convert", command=convert_translation)
 
