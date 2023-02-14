@@ -26,6 +26,15 @@ vocaloid_names = {
     'SeKai': '星界'
 }
 
+CEVIO_CHARACTERS = {"白咲优大", "赤咲湊", "东北切蒲英", "高桥", "HAL-O-ROID", "狐子", "花隈千冬", "黄咲爱里", "IA", "结月缘", "金咲小春", "可不",
+                    "Kizuna", "里命",
+                    "铃木梓梓弥", "绿咲香澄", "ONE", "POPY", "ROSE", "双叶凑音", "夏色花梨", "小春六花", "星界", "银咲大和", "知声", "佐藤莎莎拉"}
+
+
+UTAU_CHARACTERS = {
+    '重音Teto'
+}
+
 
 def name_shorten(name: str) -> str:
     for n in vocaloid_names.keys():

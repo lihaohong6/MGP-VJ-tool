@@ -15,7 +15,7 @@ from utils import login
 from utils.helpers import prompt_choices, prompt_response, prompt_multiline
 from utils.image import write_to_file
 from utils.mgp import get_producer_info
-from utils.name_converter import name_to_cat, name_to_chinese, vocaloid_names
+from utils.name_converter import name_to_cat, name_to_chinese, vocaloid_names, UTAU_CHARACTERS, CEVIO_CHARACTERS
 from utils.save_input import setup_save_input
 from utils.string import auto_lj, is_empty, datetime_to_ymd, assert_str_exists, join_string
 from utils.upload import upload_image
@@ -163,7 +163,7 @@ def create_lyrics(lyrics: Lyrics):
 """
 
 
-vocaloid_templates = {'歌爱雪', 'v flower', 'SeeU', '夏语遥', '重音Teto',
+VOCALOID_TEMPLATES = {'歌爱雪', 'v flower', 'SeeU', '夏语遥', '重音Teto',
                       '爱莲娜·芙缇', '艾可', '赤羽', '诗岸', '苍穹', '海伊',
                       '牧心', 'Minus', '岸晓', 'Infinity', '默辰', '可不', '星界'}
 vocaloid_template_mapper = {'鸣花': '鸣花姬·尊'}
@@ -173,7 +173,7 @@ def get_vocaloid_templates(vocaloids: List[str]) -> List[str]:
     result = []
     for v in vocaloids:
         name = vocaloid_names[v] if v in vocaloid_names else v
-        if name in vocaloid_templates:
+        if name in VOCALOID_TEMPLATES:
             result.append(name)
         for key, value in vocaloid_template_mapper.items():
             if key in name:
@@ -183,9 +183,11 @@ def get_vocaloid_templates(vocaloids: List[str]) -> List[str]:
 
 
 def create_end(song: Song):
+    vocaloid_templates = []
     if get_config().wikitext.producer_template_and_cat:
         list_templates, list_cats = asyncio.run(get_producer_info(song.creators.producers))
-        list_templates.extend(get_vocaloid_templates(song.creators.vocalists_str()))
+        vocaloid_templates = get_vocaloid_templates(song.creators.vocalists_str())
+        list_templates.extend(vocaloid_templates)
         # FIXME: duplicates reported here
         producer_templates = join_string(list_templates, deliminator="",
                                          outer_wrapper=("{{", "}}\n"))
@@ -193,13 +195,26 @@ def create_end(song: Song):
                                     outer_wrapper=("[[Category:", "作品]]\n"))
     else:
         producer_templates, producer_cats = "", ""
-    vocalist_cat = join_string(song.creators.vocalists_str(),
+    vocalist_cat = join_string([vocalist for vocalist in song.creators.vocalists_str()
+                                if len(get_vocaloid_templates([vocalist])) == 0],
                                deliminator="", mapper=name_to_cat,
                                outer_wrapper=('[[分类:', '歌曲]]\n'))
+    if len(vocaloid_templates) == 0:
+        engine_cats = set()
+        for vocalist in song.creators.vocalists:
+            if vocalist.name in UTAU_CHARACTERS:
+                engine_cats.add("UTAU")
+            elif vocalist.name in CEVIO_CHARACTERS:
+                engine_cats.add("CeVIO")
+            else:
+                engine_cats.add("VOCALOID")
+        engine_cat = "".join(f"[[分类:使用{cat}的歌曲]]\n" for cat in engine_cats)
+    else:
+        engine_cat = ""
     return (producer_templates + """== 注释 ==
 <references/>
 [[分类:日本音乐作品]]
-[[分类:使用VOCALOID的歌曲]]\n""" + vocalist_cat + producer_cats)
+""" + engine_cat + vocalist_cat + producer_cats)
 
 
 def setup_logger():
