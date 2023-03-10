@@ -40,6 +40,8 @@ def remove_black_boarders(image_in: Union[str, Path], image_out: Union[str, Path
     row_sums = gray.sum(axis=1) / len(gray[0])
     column_sums = gray.sum(axis=0) / len(gray)
 
+    # given an array of numbers, find the index starting from which the number is greater than the threshold
+    # and the index after which the number is smaller than the threshold
     def get_nums(arr) -> Tuple[int, int]:
         start = next((index for index, x in enumerate(arr) if x >= crop_threshold), 0)
         end = len(arr) - next((index for index, x in enumerate(reversed(arr)) if x >= crop_threshold), 0) - 1

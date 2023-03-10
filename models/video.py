@@ -124,7 +124,7 @@ def get_yt_info(vid: str) -> Union[Video, None]:
     views = int(interaction['content'])
     date = str_to_date(soup.select_one('meta[itemprop="datePublished"][content]')['content'])
     return Video(VideoSite.YOUTUBE, vid, url, views, date,
-                 thumb_url="https://img.youtube.com/vi/{}/0.jpg".format(vid))
+                 thumb_url="https://img.youtube.com/vi/{}/maxresdefault.jpg".format(vid))
 
 
 info_func = {
