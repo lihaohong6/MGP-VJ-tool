@@ -3,7 +3,7 @@ import os
 import platform
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Union, Optional
 
@@ -51,11 +51,11 @@ class Config(yaml.YAMLObject):
     lang: str = 'en'
     save_to_file: str = None
     vocadb_manual: bool = False
-    output_dir: str = ""
+    output_dir: str = field(default_factory=str)
     proxies: Optional[str] = None
-    wikitext: WikitextConfig = WikitextConfig()
-    color: ColorConfig = ColorConfig()
-    image: ImageConfig = ImageConfig()
+    wikitext: WikitextConfig = field(default_factory=WikitextConfig)
+    color: ColorConfig = field(default_factory=ColorConfig)
+    image: ImageConfig = field(default_factory=ImageConfig)
 
 
 config_xxx = Config()

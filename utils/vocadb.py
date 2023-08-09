@@ -202,7 +202,7 @@ def search_vocadb(name: str, params: dict) -> list:
         logging.error("An error occurred while searching on Vocadb")
         logging.debug("Detailed error: ", exc_info=e)
         return []
-    response = [song for song in response if song['defaultName'] == name]
+    response = [song for song in response if song['defaultName'].strip() == name]
     return response
 
 
